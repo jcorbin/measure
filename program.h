@@ -19,4 +19,10 @@ int program_set_path(
     const char *path,
     struct error_buffer *errbuf);
 
+int program_set_argv(
+    struct program *prog,
+    unsigned int argc,
+    const char *argv[],
+    struct error_buffer *errbuf);
+
 #endif // _PROGRAM_H

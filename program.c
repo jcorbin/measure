@@ -73,3 +73,25 @@ int program_set_path(
         path, getenv("PATH"));
     return -1;
 }
+
+int program_set_argv(
+    struct program *prog,
+    unsigned int argc,
+    const char *argv[],
+    struct error_buffer *errbuf) {
+
+    if (program_set_path(prog, argv[0], errbuf) != 0) return -1;
+
+    prog->argv = malloc(sizeof(char *) * (argc + 1));
+    if (prog->argv == NULL) {
+        strncpy(errbuf->s, "malloc() failed", errbuf->n);
+        return -1;
+    }
+
+    const char **p = prog->argv;
+    for (int i=0; i<argc; i++)
+        *(p++) = argv[i];
+    *p = NULL;
+
+    return 0;
+}
