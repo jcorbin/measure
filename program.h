@@ -14,4 +14,9 @@ struct program {
 
 #define program_init() {NULL, NULL, NULL, NULL, NULL, NULL}
 
+int program_set_path(
+    struct program *prog,
+    const char *path,
+    struct error_buffer *errbuf);
+
 #endif // _PROGRAM_H
