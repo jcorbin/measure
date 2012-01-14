@@ -144,8 +144,36 @@ int _open_run_file(
     return 0;
 }
 
+int _open_run_tempfile(
+    const char *path, const char **dst, int *fd,
+    struct error_buffer *errbuf) {
+
+    char *buf = strdup(path);
+    int res = mkstemp(buf);
+    if (res < 0) {
+        snprintf(errbuf->s, errbuf->n,
+            "mkstemp() failed for %s: %s", path, strerror(errno));
+        free(buf);
+        return -1;
+    }
+
+    *dst = buf;
+    *fd  = res;
+    return 0;
+}
+
 #define _open_run_input_file(path, dst, fd, errbuf) \
     _open_run_file(path, O_RDONLY, dst, fd, errbuf)
+
+int _open_run_output_file(
+    const char *path, const char **dst, int *fd,
+    struct error_buffer *errbuf) {
+
+    if (path == NULL || strcmp(path, nullfile) == 0)
+        return _open_run_file(nullfile, O_WRONLY, dst, fd, errbuf);
+    else
+        return _open_run_tempfile(path, dst, fd, errbuf);
+}
 
 int _program_run(
     struct error_buffer *errbuf,
@@ -153,6 +181,14 @@ int _program_run(
 
     if (_open_run_input_file(
             run->res->prog->stdin, &run->res->stdin, &run->stdinfd,
+            errbuf) < 0) return -1;
+
+    if (_open_run_output_file(
+            run->res->prog->stdout, &run->res->stdout, &run->stdoutfd,
+            errbuf) < 0) return -1;
+
+    if (_open_run_output_file(
+            run->res->prog->stderr, &run->res->stderr, &run->stderrfd,
             errbuf) < 0) return -1;
 
     strncpy(errbuf->s, "program_run unimplemented", errbuf->n);
