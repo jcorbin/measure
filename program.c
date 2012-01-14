@@ -118,6 +118,21 @@ void program_result_free(struct program_result *res) {
     res->stderr = NULL;
 }
 
+struct run_state {
+    struct program_result *res;
+    int stdinfd;
+    int stdoutfd;
+    int stderrfd;
+};
+
+int _program_run(
+    struct error_buffer *errbuf,
+    struct run_state *run) {
+
+    strncpy(errbuf->s, "program_run unimplemented", errbuf->n);
+    return -1;
+}
+
 struct program_result *program_run(
     const struct program *prog,
     struct program_result *res,
@@ -125,6 +140,15 @@ struct program_result *program_run(
 
     res->prog = prog;
 
-    strncpy(errbuf->s, "program_run unimplemented", errbuf->n);
-    return NULL;
+    struct run_state run = {res, -1, -1, -1};
+
+    if (_program_run(errbuf, &run) < 0)
+        res = NULL;
+
+    // TODO: close() returns <0, do we care?
+    if (run.stdinfd >= 0)  close(run.stdinfd);
+    if (run.stdoutfd >= 0) close(run.stdoutfd);
+    if (run.stderrfd >= 0) close(run.stderrfd);
+
+    return res;
 }
