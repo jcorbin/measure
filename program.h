@@ -43,4 +43,6 @@ int program_set_argv(
     const char *argv[],
     struct error_buffer *errbuf);
 
+void program_result_free(struct program_result *res);
+
 #endif // _PROGRAM_H
