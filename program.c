@@ -1,4 +1,5 @@
 #include <errno.h>
+#include <fcntl.h>
 #include <limits.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -125,9 +126,34 @@ struct run_state {
     int stderrfd;
 };
 
+int _open_run_file(
+    const char *path, int oflag,
+    const char **dst, int *fd,
+    struct error_buffer *errbuf) {
+
+    if (path == NULL) path = nullfile;
+    int res = open(path, oflag);
+    if (res < 0) {
+        snprintf(errbuf->s, errbuf->n,
+            "failed to open %s: %s", path, strerror(errno));
+        return -1;
+    }
+
+    *dst = path;
+    *fd  = res;
+    return 0;
+}
+
+#define _open_run_input_file(path, dst, fd, errbuf) \
+    _open_run_file(path, O_RDONLY, dst, fd, errbuf)
+
 int _program_run(
     struct error_buffer *errbuf,
     struct run_state *run) {
+
+    if (_open_run_input_file(
+            run->res->prog->stdin, &run->res->stdin, &run->stdinfd,
+            errbuf) < 0) return -1;
 
     strncpy(errbuf->s, "program_run unimplemented", errbuf->n);
     return -1;
