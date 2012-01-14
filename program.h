@@ -45,4 +45,9 @@ int program_set_argv(
 
 void program_result_free(struct program_result *res);
 
+struct program_result *program_run(
+    const struct program *prog,
+    struct program_result *res,
+    struct error_buffer *errbuf);
+
 #endif // _PROGRAM_H

@@ -116,5 +116,15 @@ void program_result_free(struct program_result *res) {
         res->stderr != res->prog->stderr)
         free((char *) res->stderr);
     res->stderr = NULL;
+}
 
+struct program_result *program_run(
+    const struct program *prog,
+    struct program_result *res,
+    struct error_buffer *errbuf) {
+
+    res->prog = prog;
+
+    strncpy(errbuf->s, "program_run unimplemented", errbuf->n);
+    return NULL;
 }
