@@ -15,3 +15,7 @@ int child_comm_write(int fd, const struct child_comm *comm);
 #define COMM_READ_ERR_DATA   -3
 
 int child_comm_read(int fd, struct child_comm *comm);
+
+#define CHILD_COMM_ID_MESS 0x01
+
+int child_comm_send_mess(int fd, const char *mess);

@@ -51,3 +51,11 @@ int child_comm_read(int fd, struct child_comm *comm) {
     comm->data = buf;
     return 0;
 }
+
+int child_comm_send_mess(int fd, const char *mess) {
+    struct child_comm c;
+    c.id   = CHILD_COMM_ID_MESS;
+    c.len  = strlen(mess)+1;
+    c.data = mess;
+    return child_comm_write(fd, &c);
+}
