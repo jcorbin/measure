@@ -19,6 +19,7 @@ struct program_result {
     const struct program *prog;
     struct timespec start;
     struct timespec end;
+    int status;
     struct rusage rusage;
     const char *stdin;
     const char *stdout;
@@ -28,7 +29,7 @@ struct program_result {
 #define program_init() {NULL, NULL, NULL, NULL, NULL, NULL}
 
 #define program_result_init() {\
-    NULL, {0, 0}, {0, 0}, \
+    NULL, {0, 0}, {0, 0}, 0, \
     {{0, 0}, {0, 0}, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, \
     NULL, NULL, NULL}
 
