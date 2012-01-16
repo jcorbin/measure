@@ -41,7 +41,7 @@ void print_result(struct program_result *res) {
 
 int main(unsigned int argc, const char *argv[]) {
     char _errbuf[ERRBUF_SIZE];
-    struct error_buffer errbuf = {ERRBUF_SIZE, _errbuf};
+    struct error_buffer errbuf = {ERRBUF_SIZE-1, _errbuf};
 
     // TODO: support options for things like cwd
 
