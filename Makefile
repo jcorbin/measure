@@ -1,7 +1,7 @@
 CFLAGS=-std=c1x -D_GNU_SOURCE
 LIBS=-lrt
 
-measure_obj=measure.o program.o
+measure_obj=childcomm.o program.o measure.o
 
 measure: $(measure_obj)
 	gcc -o $@ $^ $(CFLAGS) $(LIBS)
