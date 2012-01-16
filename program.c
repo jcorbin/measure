@@ -200,6 +200,7 @@ struct program_result *program_run(
     struct program_result *res,
     struct error_buffer *errbuf) {
 
+    memset(res, 0, sizeof(struct program_result));
     res->prog = prog;
 
     struct run_state run = {res, -1, -1, -1};
