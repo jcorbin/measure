@@ -21,3 +21,7 @@ int child_comm_read(int fd, struct child_comm *comm);
 int child_comm_send_mess(int fd, const char *mess);
 
 #define CHILD_EXIT_COMMERROR 0xff
+
+#define child_die(mess) exit( \
+    child_comm_send_mess(run->comm[1], mess) < 0 \
+    ? CHILD_EXIT_COMMERROR : 1)
