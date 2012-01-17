@@ -8,6 +8,7 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
+#include "childcomm.h"
 #include "program.h"
 
 int program_set_path(
@@ -234,6 +235,14 @@ int _program_run(
         snprintf(errbuf->s, errbuf->n,
             "wait4 failed: %s", strerror(errno));
         return -1;
+    }
+
+    struct child_comm comm = {0, 0, NULL};
+    while (child_comm_read(run->comm[0], &comm) == 0) {
+        free((void *) comm.data);
+        comm.id   = 0;
+        comm.len  = 0;
+        comm.data = NULL;
     }
 
     if (close(run->comm[0]) < -1) {
