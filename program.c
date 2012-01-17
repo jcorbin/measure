@@ -195,6 +195,12 @@ void _child_run(struct run_state *run) {
         child_die(errbuf.s);
     }
 
+    if (dup2(run->stdoutfd, 1) < 0) {
+        snprintf(errbuf.s, errbuf.n,
+            "stdout dup2 failed: %s", strerror(errno));
+        child_die(errbuf.s);
+    }
+
     fputs("child not implemented\n", stderr);
     exit(1);
 }
