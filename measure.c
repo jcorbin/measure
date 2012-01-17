@@ -60,6 +60,14 @@ int main(unsigned int argc, const char *argv[]) {
         exit(1);
     }
 
+    const char *cwd = getenv("MEASURE_CHDIR");
+    if (cwd != NULL) {
+        if (program_set_cwd(&prog, cwd, &errbuf) < 0) {
+            fprintf(stderr, "invalid $MEASURE_CHDIR: %s\n", errbuf.s);
+            exit(1);
+        }
+    }
+
     puts("start end utime stime maxrss ixrss idrss isrss minflt majflt "
          "nswap inblock oublock msgsnd msgrcv nsignals nvcsw nivcsw");
 
