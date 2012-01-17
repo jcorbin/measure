@@ -207,8 +207,14 @@ void _child_run(struct run_state *run) {
         child_die(errbuf.s);
     }
 
-    fputs("child not implemented\n", stderr);
-    exit(1);
+    const char *path  = run->res->prog->path;
+    const char **argv = run->res->prog->argv;
+
+    if (execv(path, (char * const*) argv) < 0) {
+        snprintf(errbuf.s, errbuf.n,
+            "execv() failed: %s", strerror(errno));
+        child_die(errbuf.s);
+    }
 }
 
 int _program_run(
