@@ -318,6 +318,25 @@ int _program_run(
         comm.data = NULL;
     }
 
+    if (! got_start) {
+        if (WIFEXITED(run->res->status)) {
+            unsigned char exitval = WEXITSTATUS(run->res->status);
+            if (exitval == CHILD_EXIT_COMMERROR)
+                strncpy(errbuf->s, "chlid communication error", errbuf->n);
+            else
+                snprintf(errbuf->s, errbuf->n,
+                    "unknown child failure, exited %i", run->res->status);
+        } else if (WIFSIGNALED(run->res->status)) {
+            snprintf(errbuf->s, errbuf->n,
+                "child exited due to signal %i", WTERMSIG(run->res->status));
+            return -1;
+        } else {
+            snprintf(errbuf->s, errbuf->n,
+                "unknown child failure, exit status %x", run->res->status);
+        }
+        return -1;
+    }
+
     if (close(run->comm[0]) < -1) {
         snprintf(errbuf->s, errbuf->n,
             "failed to close child read pipe: %s", strerror(errno));
