@@ -123,6 +123,7 @@ void program_result_free(struct program_result *res) {
 struct run_state {
     struct program_result *res;
     pid_t pid;
+    int comm[2];
     int stdinfd;
     int stdoutfd;
     int stderrfd;
@@ -178,6 +179,13 @@ int _open_run_output_file(
 }
 
 void _child_run(struct run_state *run) {
+    if (close(run->comm[0]) < -1) {
+        fprintf(stderr,
+            "child failed to close() read half of comm pipe: %s",
+            strerror(errno));
+        exit(CHILD_EXIT_COMMERROR);
+    }
+
     fputs("child not implemented\n", stderr);
     exit(1);
 }
@@ -198,6 +206,12 @@ int _program_run(
             run->res->prog->stderr, &run->res->stderr, &run->stderrfd,
             errbuf) < 0) return -1;
 
+    if (pipe(run->comm) < 0) {
+        snprintf(errbuf->s, errbuf->n,
+            "pipe() failed: %s", strerror(errno));
+        return -1;
+    }
+
     run->pid = fork();
     if (run->pid == 0) {
         _child_run(run);
@@ -209,10 +223,22 @@ int _program_run(
         return -1;
     }
 
+    if (close(run->comm[1]) < -1) {
+        snprintf(errbuf->s, errbuf->n,
+            "failed to close child write pipe: %s", strerror(errno));
+        return -1;
+    }
+
     pid_t r = wait4(run->pid, &run->res->status, 0, &run->res->rusage);
     if (r < 0) {
         snprintf(errbuf->s, errbuf->n,
             "wait4 failed: %s", strerror(errno));
+        return -1;
+    }
+
+    if (close(run->comm[0]) < -1) {
+        snprintf(errbuf->s, errbuf->n,
+            "failed to close child read pipe: %s", strerror(errno));
         return -1;
     }
 
@@ -227,7 +253,7 @@ struct program_result *program_run(
     memset(res, 0, sizeof(struct program_result));
     res->prog = prog;
 
-    struct run_state run = {res, 0, -1, -1, -1};
+    struct run_state run = {res, 0, {-1, -1}, -1, -1, -1};
 
     if (_program_run(errbuf, &run) < 0)
         res = NULL;
