@@ -210,6 +210,15 @@ void _child_run(struct run_state *run) {
     const char *path  = run->res->prog->path;
     const char **argv = run->res->prog->argv;
 
+    struct timespec t;
+
+    if (clock_gettime(CLOCK_MONOTONIC_RAW, &t) != 0) {
+        snprintf(errbuf.s, errbuf.n,
+            "clock_gettime(CLOCK_MONOTONIC_RAW) failed: %s",
+            strerror(errno));
+        child_die(errbuf.s);
+    }
+
     if (execv(path, (char * const*) argv) < 0) {
         snprintf(errbuf.s, errbuf.n,
             "execv() failed: %s", strerror(errno));
