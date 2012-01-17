@@ -239,6 +239,20 @@ int _program_run(
 
     struct child_comm comm = {0, 0, NULL};
     while (child_comm_read(run->comm[0], &comm) == 0) {
+        if (comm.id == CHILD_COMM_ID_MESS) {
+            *((char *) comm.data + comm.len - 1) = '\0';
+            strncpy(errbuf->s, "child failed: ", errbuf->n);
+            size_t n = errbuf->n - 14;
+            if (comm.len < n) n = comm.len;
+            strncpy(errbuf->s + 14, comm.data, n);
+            free((void *) comm.data);
+            return -1;
+        } else {
+            snprintf(errbuf->s, errbuf->n,
+                "received unknown message id %02x from child", comm.id);
+            free((void *) comm.data);
+            return -1;
+        }
         free((void *) comm.data);
         comm.id   = 0;
         comm.len  = 0;
