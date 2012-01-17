@@ -263,6 +263,13 @@ int _program_run(
         return -1;
     }
 
+    if (clock_gettime(CLOCK_MONOTONIC_RAW, &run->res->end) != 0) {
+        snprintf(errbuf->s, errbuf->n,
+            "clock_gettime(CLOCK_MONOTONIC_RAW) failed: %s",
+            strerror(errno));
+        return -1;
+    }
+
     struct child_comm comm = {0, 0, NULL};
     while (child_comm_read(run->comm[0], &comm) == 0) {
         if (comm.id == CHILD_COMM_ID_MESS) {
