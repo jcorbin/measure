@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <sys/wait.h>
 #include <unistd.h>
 
 #include "program.h"
@@ -121,6 +122,7 @@ void program_result_free(struct program_result *res) {
 
 struct run_state {
     struct program_result *res;
+    pid_t pid;
     int stdinfd;
     int stdoutfd;
     int stderrfd;
@@ -191,8 +193,24 @@ int _program_run(
             run->res->prog->stderr, &run->res->stderr, &run->stderrfd,
             errbuf) < 0) return -1;
 
-    strncpy(errbuf->s, "program_run unimplemented", errbuf->n);
-    return -1;
+    run->pid = fork();
+    if (run->pid == 0) {
+        fputs("child not implemented\n", stderr);
+        exit(0xfe);
+    } else if (run->pid < 0) {
+        snprintf(errbuf->s, errbuf->n,
+            "fork() failed: %s", strerror(errno));
+        return -1;
+    }
+
+    pid_t r = wait4(run->pid, &run->res->status, 0, &run->res->rusage);
+    if (r < 0) {
+        snprintf(errbuf->s, errbuf->n,
+            "wait4 failed: %s", strerror(errno));
+        return -1;
+    }
+
+    return 0;
 }
 
 struct program_result *program_run(
@@ -203,7 +221,7 @@ struct program_result *program_run(
     memset(res, 0, sizeof(struct program_result));
     res->prog = prog;
 
-    struct run_state run = {res, -1, -1, -1};
+    struct run_state run = {res, 0, -1, -1, -1};
 
     if (_program_run(errbuf, &run) < 0)
         res = NULL;
