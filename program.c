@@ -288,6 +288,10 @@ int _program_run(
         return -1;
     }
 
+    // TODO: try using a SIGCHLD handler rather than blocking wait
+    //       * pause(3P)
+    //       * sigaction(3P)
+
     pid_t r = wait4(run->pid, &run->res->status, 0, &run->res->rusage);
     if (r < 0) {
         snprintf(errbuf->s, errbuf->n,
