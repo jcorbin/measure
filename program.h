@@ -33,6 +33,11 @@ struct program_result {
     {{0, 0}, {0, 0}, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, \
     NULL, NULL, NULL}
 
+int program_set_cwd(
+    struct program *prog,
+    const char *path,
+    struct error_buffer *errbuf);
+
 int program_set_path(
     struct program *prog,
     const char *path,
