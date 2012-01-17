@@ -187,6 +187,14 @@ void _child_run(struct run_state *run) {
         exit(CHILD_EXIT_COMMERROR);
     }
 
+    struct error_buffer errbuf;
+
+    if (dup2(run->stdinfd, 0) < 0) {
+        snprintf(errbuf.s, errbuf.n,
+            "stdin dup2 failed: %s", strerror(errno));
+        child_die(errbuf.s);
+    }
+
     fputs("child not implemented\n", stderr);
     exit(1);
 }
