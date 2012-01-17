@@ -17,6 +17,7 @@ int child_comm_write(int fd, const struct child_comm *comm);
 int child_comm_read(int fd, struct child_comm *comm);
 
 #define CHILD_COMM_ID_MESS 0x01
+#define CHILD_COMM_ID_STARTTIME 0x02
 
 int child_comm_send_mess(int fd, const char *mess);
 

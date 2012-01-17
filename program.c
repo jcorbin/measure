@@ -211,6 +211,10 @@ void _child_run(struct run_state *run) {
     const char **argv = run->res->prog->argv;
 
     struct timespec t;
+    struct child_comm c;
+    c.id   = CHILD_COMM_ID_STARTTIME;
+    c.len  = sizeof(struct timespec);
+    c.data = &t;
 
     if (clock_gettime(CLOCK_MONOTONIC_RAW, &t) != 0) {
         snprintf(errbuf.s, errbuf.n,
@@ -218,6 +222,8 @@ void _child_run(struct run_state *run) {
             strerror(errno));
         child_die(errbuf.s);
     }
+    if (child_comm_write(run->comm[1], &c) < 0)
+        exit(CHILD_EXIT_COMMERROR);
 
     if (execv(path, (char * const*) argv) < 0) {
         snprintf(errbuf.s, errbuf.n,
@@ -279,6 +285,7 @@ int _program_run(
         return -1;
     }
 
+    unsigned char got_start = 0;
     struct child_comm comm = {0, 0, NULL};
     while (child_comm_read(run->comm[0], &comm) == 0) {
         if (comm.id == CHILD_COMM_ID_MESS) {
@@ -289,6 +296,16 @@ int _program_run(
             strncpy(errbuf->s + 14, comm.data, n);
             free((void *) comm.data);
             return -1;
+        } else if (comm.id == CHILD_COMM_ID_STARTTIME) {
+            if (comm.len != sizeof(struct timespec)) {
+                snprintf(errbuf->s, errbuf->n,
+                    "expected %i bytes for start time, got %i",
+                    sizeof(struct timespec), comm.len);
+                free((void *) comm.data);
+                return -1;
+            }
+            memcpy(&run->res->start, comm.data, sizeof(struct timespec));
+            got_start = 1;
         } else {
             snprintf(errbuf->s, errbuf->n,
                 "received unknown message id %02x from child", comm.id);
