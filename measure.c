@@ -69,7 +69,8 @@ int main(unsigned int argc, const char *argv[]) {
     }
 
     puts("start end utime stime maxrss ixrss idrss isrss minflt majflt "
-         "nswap inblock oublock msgsnd msgrcv nsignals nvcsw nivcsw");
+         "nswap inblock oublock msgsnd msgrcv nsignals nvcsw nivcsw "
+         "stdout stderr");
 
     struct program_result res = program_result_init();
 
