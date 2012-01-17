@@ -177,6 +177,11 @@ int _open_run_output_file(
         return _open_run_tempfile(path, dst, fd, errbuf);
 }
 
+void _child_run(struct run_state *run) {
+    fputs("child not implemented\n", stderr);
+    exit(1);
+}
+
 int _program_run(
     struct error_buffer *errbuf,
     struct run_state *run) {
@@ -195,7 +200,8 @@ int _program_run(
 
     run->pid = fork();
     if (run->pid == 0) {
-        fputs("child not implemented\n", stderr);
+        _child_run(run);
+        // shouldn't happen, _child_run execv()s or exit()s
         exit(0xfe);
     } else if (run->pid < 0) {
         snprintf(errbuf->s, errbuf->n,
