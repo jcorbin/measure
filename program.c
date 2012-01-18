@@ -270,6 +270,8 @@ int _program_run(
             "pipe() failed: %s", strerror(errno));
         return -1;
     }
+    fcntl(run->comm[0], F_SETFD, FD_CLOEXEC);
+    fcntl(run->comm[1], F_SETFD, FD_CLOEXEC);
 
     run->pid = fork();
     if (run->pid == 0) {
