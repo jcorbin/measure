@@ -85,16 +85,15 @@ int program_set_argv(
 
     if (program_set_path(prog, argv[0], errbuf) != 0) return -1;
 
-    prog->argv = malloc(sizeof(char *) * (argc + 1));
+    prog->argv = calloc(argc + 1, sizeof(char *));
     if (prog->argv == NULL) {
-        strncpy(errbuf->s, "malloc() failed", errbuf->n);
+        strncpy(errbuf->s, "calloc() failed", errbuf->n);
         return -1;
     }
 
     const char **p = prog->argv;
     for (int i=0; i<argc; i++)
         *(p++) = argv[i];
-    *p = NULL;
 
     return 0;
 }
