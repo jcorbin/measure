@@ -153,7 +153,7 @@ int _open_run_file(
     struct error_buffer *errbuf) {
 
     if (path == NULL) path = nullfile;
-    int res = open(path, oflag);
+    int res = open(path, oflag | O_CLOEXEC);
     if (res < 0) {
         snprintf(errbuf->s, errbuf->n,
             "failed to open %s: %s", path, strerror(errno));
@@ -170,7 +170,7 @@ int _open_run_tempfile(
     struct error_buffer *errbuf) {
 
     char *buf = strdup(path);
-    int res = mkstemp(buf);
+    int res = mkostemp(buf, O_WRONLY | O_CLOEXEC);
     if (res < 0) {
         snprintf(errbuf->s, errbuf->n,
             "mkstemp() failed for %s: %s", path, strerror(errno));
