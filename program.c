@@ -11,23 +11,6 @@
 #include "childcomm.h"
 #include "program.h"
 
-int program_set_cwd(
-    struct program *prog,
-    const char *path,
-    struct error_buffer *errbuf) {
-
-    char buf[PATH_MAX];
-    if (realpath(path, buf) == NULL) {
-        snprintf(errbuf->s, errbuf->n,
-            "failed to resolve %s: %s", path, strerror(errno));
-        return -1;
-    }
-
-    prog->cwd = strdup(buf);
-
-    return 0;
-}
-
 int program_set_path(
     struct program *prog,
     const char *path,
