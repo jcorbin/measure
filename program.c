@@ -42,7 +42,13 @@ int program_set_path(
                 "cannot access %s: %s", buf, strerror(errno));
             return -1;
         }
+
         prog->path = strdup(buf);
+        if (prog->path == NULL) {
+            strncpy(errbuf->s, "strdup() failed", errbuf->n);
+            return -1;
+        }
+
         return 0;
     }
 
@@ -152,6 +158,11 @@ int _open_run_tempfile(
     struct error_buffer *errbuf) {
 
     char *buf = strdup(path);
+    if (buf == NULL) {
+        strncpy(errbuf->s, "strdup() failed", errbuf->n);
+        return -1;
+    }
+
     int res = mkostemp(buf, O_WRONLY | O_CLOEXEC);
     if (res < 0) {
         snprintf(errbuf->s, errbuf->n,
