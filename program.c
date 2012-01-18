@@ -197,13 +197,6 @@ int _open_run_output_file(
 }
 
 void _child_run(struct run_state *run) {
-    if (close(run->comm[0]) < -1) {
-        fprintf(stderr,
-            "child failed to close() read half of comm pipe: %s",
-            strerror(errno));
-        exit(CHILD_EXIT_COMMERROR);
-    }
-
     struct error_buffer errbuf;
 
     if (dup2(run->stdinfd, 0) < 0) {
