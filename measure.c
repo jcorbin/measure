@@ -71,6 +71,8 @@ int main(unsigned int argc, const char *argv[]) {
     putchar('\n');
     fflush(stdout);
 
+    // TODO: handle SIGPIPE and unlink output files which weren't consumed
+
     // run program
     while (1) {
         if (program_run(&prog, &res, &errbuf) == NULL) {
