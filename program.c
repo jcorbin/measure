@@ -130,7 +130,6 @@ struct run_state {
     struct program_result *res;
     pid_t pid;
     int comm[2];
-    int stdoutfd;
     int stderrfd;
 };
 
@@ -191,6 +190,7 @@ int _open_run_output_file(
 void _child_run(struct run_state *run) {
     struct error_buffer errbuf;
     int stdinfd;
+    int stdoutfd;
 
     // stdin
     if (_open_run_input_file(
@@ -205,7 +205,14 @@ void _child_run(struct run_state *run) {
         child_die(errbuf.s);
     }
 
-    if (dup2(run->stdoutfd, 1) < 0) {
+    // stdout
+    if (_open_run_output_file(
+            run->res->prog->stdout, &run->res->stdout, &stdoutfd,
+            &errbuf) < 0)
+        child_die(errbuf.s);
+    if (child_comm_send_filepath(run->comm[1], "stdout", run->res->stdout) < 0)
+        exit(CHILD_EXIT_COMMERROR);
+    if (dup2(stdoutfd, 1) < 0) {
         snprintf(errbuf.s, errbuf.n,
             "stdout dup2 failed: %s", strerror(errno));
         child_die(errbuf.s);
@@ -245,10 +252,6 @@ void _child_run(struct run_state *run) {
 int _program_run(
     struct error_buffer *errbuf,
     struct run_state *run) {
-
-    if (_open_run_output_file(
-            run->res->prog->stdout, &run->res->stdout, &run->stdoutfd,
-            errbuf) < 0) return -1;
 
     if (_open_run_output_file(
             run->res->prog->stderr, &run->res->stderr, &run->stderrfd,
@@ -398,13 +401,12 @@ struct program_result *program_run(
     memset(res, 0, sizeof(struct program_result));
     res->prog = prog;
 
-    struct run_state run = {res, 0, {-1, -1}, -1, -1};
+    struct run_state run = {res, 0, {-1, -1}, -1};
 
     if (_program_run(errbuf, &run) < 0)
         res = NULL;
 
     // TODO: close() returns <0, do we care?
-    if (run.stdoutfd >= 0) close(run.stdoutfd);
     if (run.stderrfd >= 0) close(run.stderrfd);
 
     return res;
