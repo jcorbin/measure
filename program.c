@@ -130,41 +130,6 @@ void program_result_free(struct program_result *res) {
     res->stderr = NULL;
 }
 
-int _open_run_file(
-    const char **path, int oflag, int *fd,
-    struct error_buffer *errbuf) {
-
-    if (*path == NULL)
-        *path = nullfile;
-    else if (*path != nullfile && strcmp(*path, nullfile) == 0)
-        *path = nullfile;
-
-    if (oflag & O_WRONLY && *path != nullfile) {
-        char *buf = strdup(*path);
-        if (buf == NULL) {
-            strncpy(errbuf->s, "strdup() failed", errbuf->n);
-            return -1;
-        }
-        *fd = mkostemp(buf, oflag | O_CLOEXEC);
-        if (*fd < 0) {
-            snprintf(errbuf->s, errbuf->n,
-                "mkstemp() failed for %s: %s", *path, strerror(errno));
-            free(buf);
-            return -1;
-        }
-        *path = buf;
-    } else {
-        *fd = open(*path, oflag | O_CLOEXEC);
-        if (*fd < 0) {
-            snprintf(errbuf->s, errbuf->n,
-                "failed to open %s: %s", *path, strerror(errno));
-            return -1;
-        }
-    }
-
-    return 0;
-}
-
 static const char *stdname[3] = {"stdin", "stdout", "stderr"};
 static const int stdflags[3] = {O_RDONLY, O_WRONLY, O_WRONLY};
 
@@ -178,8 +143,31 @@ void _child_run(struct program_result *res, int commfd) {
     const char **stdpaths = progpaths;
 
     for (int i=0; i<3; i++) {
-        if (_open_run_file(&stdpaths[i], stdflags[i], &stdfds[i], &errbuf) < 0)
-            child_die(errbuf.s);
+        if (stdpaths[i] == NULL)
+            stdpaths[i] = nullfile;
+        else if (stdpaths[i] != nullfile &&
+                 strcmp(stdpaths[i], nullfile) == 0)
+            stdpaths[i] = nullfile;
+
+        if (stdflags[i] & O_WRONLY && stdpaths[i] != nullfile) {
+            char *buf = strdup(stdpaths[i]);
+            if (buf == NULL)
+                child_die("strdup() failed");
+            stdfds[i] = mkostemp(buf, stdflags[i] | O_CLOEXEC);
+            if (stdfds[i] < 0) {
+                snprintf(errbuf.s, errbuf.n, "mkstemp() failed for %s: %s",
+                    stdpaths[i], strerror(errno));
+                child_die(errbuf.s);
+            }
+            stdpaths[i] = buf;
+        } else {
+            stdfds[i] = open(stdpaths[i], stdflags[i] | O_CLOEXEC);
+            if (stdfds[i] < 0) {
+                snprintf(errbuf.s, errbuf.n, "failed to open %s: %s",
+                    stdpaths[i], strerror(errno));
+                child_die(errbuf.s);
+            }
+        }
 
         if (child_comm_send_filepath(commfd, stdname[i], stdpaths[i]) < 0)
             exit(CHILD_EXIT_COMMERROR);
