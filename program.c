@@ -175,13 +175,13 @@ int _open_run_tempfile(
     _open_run_file(*path, O_RDONLY, path, fd, errbuf)
 
 int _open_run_output_file(
-    const char *path, const char **dst, int *fd,
+    const char **path, int *fd,
     struct error_buffer *errbuf) {
 
-    if (path == NULL || strcmp(path, nullfile) == 0)
-        return _open_run_file(nullfile, O_WRONLY, dst, fd, errbuf);
+    if (*path == NULL || strcmp(*path, nullfile) == 0)
+        return _open_run_file(nullfile, O_WRONLY, path, fd, errbuf);
     else
-        return _open_run_tempfile(path, dst, fd, errbuf);
+        return _open_run_tempfile(*path, path, fd, errbuf);
 }
 
 static const char *stdname[3] = {"stdin", "stdout", "stderr"};
@@ -189,7 +189,6 @@ static const char *stdname[3] = {"stdin", "stdout", "stderr"};
 void _child_run(struct program_result *res, int commfd) {
     struct error_buffer errbuf;
     int stdfds[3];
-    const char *buf;
     const char *stdpaths[3] = {
         res->prog->stdin,
         res->prog->stdout,
@@ -206,14 +205,10 @@ void _child_run(struct program_result *res, int commfd) {
         child_die(errbuf.s);
     }
 
-    // TODO: buf leaks
-
     // stdout
-    if (_open_run_output_file(
-            stdpaths[1], &buf, &stdfds[1],
-            &errbuf) < 0)
+    if (_open_run_output_file(&stdpaths[1], &stdfds[1], &errbuf) < 0)
         child_die(errbuf.s);
-    if (child_comm_send_filepath(commfd, stdname[1], buf) < 0)
+    if (child_comm_send_filepath(commfd, stdname[1], stdpaths[1]) < 0)
         exit(CHILD_EXIT_COMMERROR);
     if (dup2(stdfds[1], 1) < 0) {
         snprintf(errbuf.s, errbuf.n,
@@ -221,14 +216,10 @@ void _child_run(struct program_result *res, int commfd) {
         child_die(errbuf.s);
     }
 
-    // TODO: buf leaks again
-
     // stderr
-    if (_open_run_output_file(
-            stdpaths[2], &buf, &stdfds[2],
-            &errbuf) < 0)
+    if (_open_run_output_file(&stdpaths[2], &stdfds[2], &errbuf) < 0)
         child_die(errbuf.s);
-    if (child_comm_send_filepath(commfd, stdname[2], buf) < 0)
+    if (child_comm_send_filepath(commfd, stdname[2], stdpaths[2]) < 0)
         exit(CHILD_EXIT_COMMERROR);
     if (dup2(stdfds[2], 2) < 0) {
         snprintf(errbuf.s, errbuf.n,
@@ -236,7 +227,7 @@ void _child_run(struct program_result *res, int commfd) {
         child_die(errbuf.s);
     }
 
-    // TODO: buf leaks yet again
+    // TODO: leak allocated memory in stdpaths
 
     const char *path  = res->prog->path;
     const char **argv = res->prog->argv;
