@@ -258,7 +258,8 @@ void _child_run(struct program_result *res, int commfd) {
 
 int _program_run(
     struct error_buffer *errbuf,
-    struct run_state *run) {
+    struct run_state *run,
+    struct program_result *res) {
 
     int commpipe[2];
 
@@ -408,7 +409,7 @@ struct program_result *program_run(
 
     struct run_state run = {res};
 
-    if (_program_run(errbuf, &run) < 0)
+    if (_program_run(errbuf, &run, res) < 0)
         res = NULL;
 
     return res;
