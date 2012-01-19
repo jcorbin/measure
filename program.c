@@ -305,6 +305,38 @@ int _program_run(
             strncpy(errbuf->s + 14, comm.data, n);
             free((void *) comm.data);
             return -1;
+        } else if (comm.id == CHILD_COMM_ID_FILEPATH) {
+            const char *name = (char *) comm.data;
+            const char *path = (char *) memchr(name, '\0', comm.len);
+            if (path == NULL) {
+                strncpy(errbuf->s,
+                    "no null byte in filepath child message",
+                    errbuf->n);
+                free((void *) comm.data);
+                return -1;
+            }
+            path++;
+
+            const char **dst = NULL;
+            if (strcmp(name, "stdin") == 0)
+                dst = &run->res->stdin;
+            else if (strcmp(name, "stdout") == 0)
+                dst = &run->res->stdout;
+            else if (strcmp(name, "stderr") == 0)
+                dst = &run->res->stderr;
+            else {
+                snprintf(errbuf->s, errbuf->n,
+                    "invalid filepath name \"%s\"", name);
+                free((void *) comm.data);
+                return -1;
+            }
+            path = strdup(path);
+            if (path == NULL) {
+                strncpy(errbuf->s, "strdup() failed", errbuf->n);
+                free((void *) comm.data);
+                return -1;
+            }
+            *dst = path;
         } else if (comm.id == CHILD_COMM_ID_STARTTIME) {
             if (comm.len != sizeof(struct timespec)) {
                 snprintf(errbuf->s, errbuf->n,
