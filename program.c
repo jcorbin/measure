@@ -165,18 +165,6 @@ int _open_run_file(
     return 0;
 }
 
-int _open_run_output_file(
-    const char **path, int *fd,
-    struct error_buffer *errbuf) {
-
-    if (*path == NULL || strcmp(*path, nullfile) == 0) {
-        *path = nullfile;
-        return _open_run_file(path, O_WRONLY, fd, errbuf);
-    } else {
-        return _open_run_file(path, O_WRONLY, fd, errbuf);
-    }
-}
-
 static const char *stdname[3] = {"stdin", "stdout", "stderr"};
 
 void _child_run(struct program_result *res, int commfd) {
@@ -193,11 +181,11 @@ void _child_run(struct program_result *res, int commfd) {
         child_die(errbuf.s);
 
     // stdout
-    if (_open_run_output_file(&stdpaths[1], &stdfds[1], &errbuf) < 0)
+    if (_open_run_file(&stdpaths[1], O_WRONLY, &stdfds[1], &errbuf) < 0)
         child_die(errbuf.s);
 
     // stderr
-    if (_open_run_output_file(&stdpaths[2], &stdfds[2], &errbuf) < 0)
+    if (_open_run_file(&stdpaths[2], O_WRONLY, &stdfds[2], &errbuf) < 0)
         child_die(errbuf.s);
 
     for (int i=0; i<3; i++) {
