@@ -184,6 +184,8 @@ int _open_run_output_file(
         return _open_run_tempfile(path, dst, fd, errbuf);
 }
 
+static const char *stdname[3] = {"stdin", "stdout", "stderr"};
+
 void _child_run(struct program_result *res, int commfd) {
     struct error_buffer errbuf;
     int stdfds[3];
@@ -193,11 +195,11 @@ void _child_run(struct program_result *res, int commfd) {
             res->prog->stdin, &res->stdin, &stdfds[0],
             &errbuf) < 0)
         child_die(errbuf.s);
-    if (child_comm_send_filepath(commfd, "stdin", res->stdin) < 0)
+    if (child_comm_send_filepath(commfd, stdname[0], res->stdin) < 0)
         exit(CHILD_EXIT_COMMERROR);
     if (dup2(stdfds[0], 0) < 0) {
         snprintf(errbuf.s, errbuf.n,
-            "stdin dup2 failed: %s", strerror(errno));
+            "%s dup2 failed: %s", stdname[0], strerror(errno));
         child_die(errbuf.s);
     }
 
@@ -206,11 +208,11 @@ void _child_run(struct program_result *res, int commfd) {
             res->prog->stdout, &res->stdout, &stdfds[1],
             &errbuf) < 0)
         child_die(errbuf.s);
-    if (child_comm_send_filepath(commfd, "stdout", res->stdout) < 0)
+    if (child_comm_send_filepath(commfd, stdname[1], res->stdout) < 0)
         exit(CHILD_EXIT_COMMERROR);
     if (dup2(stdfds[1], 1) < 0) {
         snprintf(errbuf.s, errbuf.n,
-            "stdout dup2 failed: %s", strerror(errno));
+            "%s dup2 failed: %s", stdname[1], strerror(errno));
         child_die(errbuf.s);
     }
 
@@ -219,11 +221,11 @@ void _child_run(struct program_result *res, int commfd) {
             res->prog->stderr, &res->stderr, &stdfds[2],
             &errbuf) < 0)
         child_die(errbuf.s);
-    if (child_comm_send_filepath(commfd, "stderr", res->stderr) < 0)
+    if (child_comm_send_filepath(commfd, stdname[2], res->stderr) < 0)
         exit(CHILD_EXIT_COMMERROR);
     if (dup2(stdfds[2], 2) < 0) {
         snprintf(errbuf.s, errbuf.n,
-            "stderr dup2 failed: %s", strerror(errno));
+            "%s dup2 failed: %s", stdname[2], strerror(errno));
         child_die(errbuf.s);
     }
 
