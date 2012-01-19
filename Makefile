@@ -6,7 +6,9 @@ measure_obj=childcomm.o program.o measure.o
 measure: $(measure_obj)
 	gcc -o $@ $^ $(CFLAGS) $(LIBS)
 
-.PHONY: clean
+all: measure
+
+.PHONY: all clean
 
 clean:
 	rm measure $(measure_obj) 2>/dev/null || true
