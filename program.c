@@ -146,9 +146,6 @@ int _open_run_file(
     return 0;
 }
 
-#define _open_run_input_file(path, fd, errbuf) \
-    _open_run_file(path, O_RDONLY, fd, errbuf)
-
 int _open_run_output_file(
     const char **path, int *fd,
     struct error_buffer *errbuf) {
@@ -187,7 +184,7 @@ void _child_run(struct program_result *res, int commfd) {
     const char **stdpaths = progpaths;
 
     // stdin
-    if (_open_run_input_file(&stdpaths[0], &stdfds[0], &errbuf) < 0)
+    if (_open_run_file(&stdpaths[0], O_RDONLY, &stdfds[0], &errbuf) < 0)
         child_die(errbuf.s);
 
     // stdout
