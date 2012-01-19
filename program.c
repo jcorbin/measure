@@ -11,6 +11,10 @@
 #include "childcomm.h"
 #include "program.h"
 
+#define child_die(mess) exit( \
+    child_comm_send_mess(run->comm[1], mess) < 0 \
+    ? CHILD_EXIT_COMMERROR : 1)
+
 int program_set_path(
     struct program *prog,
     const char *path,
