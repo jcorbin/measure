@@ -189,10 +189,11 @@ static const char *stdname[3] = {"stdin", "stdout", "stderr"};
 void _child_run(struct program_result *res, int commfd) {
     struct error_buffer errbuf;
     int stdfds[3];
-    const char *stdpaths[3] = {
+    const char *progpaths[3] = {
         res->prog->stdin,
         res->prog->stdout,
         res->prog->stderr};
+    const char **stdpaths = progpaths;
 
     // stdin
     if (_open_run_input_file(&stdpaths[0], &stdfds[0], &errbuf) < 0)
