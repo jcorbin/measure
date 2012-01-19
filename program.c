@@ -228,7 +228,13 @@ void _child_run(struct program_result *res, int commfd) {
         child_die(errbuf.s);
     }
 
-    // TODO: leak allocated memory in stdpaths
+    for (int i=0; i<3; i++) {
+        if (stdpaths[i] != NULL &&
+            stdpaths[i] != nullfile &&
+            stdpaths[i] != progpaths[i])
+            free((void *) stdpaths[i]);
+        stdpaths[i] = NULL;
+    }
 
     const char *path  = res->prog->path;
     const char **argv = res->prog->argv;
