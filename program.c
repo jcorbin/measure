@@ -178,10 +178,11 @@ int _open_run_output_file(
     const char **path, int *fd,
     struct error_buffer *errbuf) {
 
-    if (*path == NULL || strcmp(*path, nullfile) == 0)
+    if (*path == NULL || strcmp(*path, nullfile) == 0) {
         return _open_run_file(nullfile, O_WRONLY, path, fd, errbuf);
-    else
+    } else {
         return _open_run_tempfile(path, fd, errbuf);
+    }
 }
 
 static const char *stdname[3] = {"stdin", "stdout", "stderr"};
