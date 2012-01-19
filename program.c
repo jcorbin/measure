@@ -189,7 +189,7 @@ int _open_run_output_file(
         return _open_run_tempfile(path, dst, fd, errbuf);
 }
 
-void _child_run(struct run_state *run, struct program_result *res, int commfd) {
+void _child_run(struct program_result *res, int commfd) {
     struct error_buffer errbuf;
     int stdfds[3];
 
@@ -273,7 +273,7 @@ int _program_run(
 
     run->pid = fork();
     if (run->pid == 0) {
-        _child_run(run, run->res, commpipe[1]);
+        _child_run(run->res, commpipe[1]);
         // shouldn't happen, _child_run execv()s or exit()s
         exit(0xfe);
     } else if (run->pid < 0) {
