@@ -18,8 +18,11 @@ int child_comm_read(int fd, struct child_comm *comm);
 
 #define CHILD_COMM_ID_MESS 0x01
 #define CHILD_COMM_ID_STARTTIME 0x02
+#define CHILD_COMM_ID_FILEPATH 0x03
 
 int child_comm_send_mess(int fd, const char *mess);
+
+int child_comm_send_filepath(int fd, const char *name, const char *path);
 
 #define CHILD_EXIT_COMMERROR 0xff
 
