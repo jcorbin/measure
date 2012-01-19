@@ -188,18 +188,16 @@ int _open_run_output_file(
 
 void _child_run(struct run_state *run) {
     struct error_buffer errbuf;
-    int stdinfd;
-    int stdoutfd;
-    int stderrfd;
+    int stdfds[3];
 
     // stdin
     if (_open_run_input_file(
-            run->res->prog->stdin, &run->res->stdin, &stdinfd,
+            run->res->prog->stdin, &run->res->stdin, &stdfds[0],
             &errbuf) < 0)
         child_die(errbuf.s);
     if (child_comm_send_filepath(run->comm[1], "stdin", run->res->stdin) < 0)
         exit(CHILD_EXIT_COMMERROR);
-    if (dup2(stdinfd, 0) < 0) {
+    if (dup2(stdfds[0], 0) < 0) {
         snprintf(errbuf.s, errbuf.n,
             "stdin dup2 failed: %s", strerror(errno));
         child_die(errbuf.s);
@@ -207,12 +205,12 @@ void _child_run(struct run_state *run) {
 
     // stdout
     if (_open_run_output_file(
-            run->res->prog->stdout, &run->res->stdout, &stdoutfd,
+            run->res->prog->stdout, &run->res->stdout, &stdfds[1],
             &errbuf) < 0)
         child_die(errbuf.s);
     if (child_comm_send_filepath(run->comm[1], "stdout", run->res->stdout) < 0)
         exit(CHILD_EXIT_COMMERROR);
-    if (dup2(stdoutfd, 1) < 0) {
+    if (dup2(stdfds[1], 1) < 0) {
         snprintf(errbuf.s, errbuf.n,
             "stdout dup2 failed: %s", strerror(errno));
         child_die(errbuf.s);
@@ -220,12 +218,12 @@ void _child_run(struct run_state *run) {
 
     // stderr
     if (_open_run_output_file(
-            run->res->prog->stderr, &run->res->stderr, &stderrfd,
+            run->res->prog->stderr, &run->res->stderr, &stdfds[2],
             &errbuf) < 0)
         child_die(errbuf.s);
     if (child_comm_send_filepath(run->comm[1], "stderr", run->res->stderr) < 0)
         exit(CHILD_EXIT_COMMERROR);
-    if (dup2(stderrfd, 2) < 0) {
+    if (dup2(stdfds[2], 2) < 0) {
         snprintf(errbuf.s, errbuf.n,
             "stderr dup2 failed: %s", strerror(errno));
         child_die(errbuf.s);
