@@ -130,10 +130,6 @@ void program_result_free(struct program_result *res) {
     res->stderr = NULL;
 }
 
-struct run_state {
-    struct program_result *res;
-};
-
 int _open_run_file(
     const char *path, int oflag,
     const char **dst, int *fd,
@@ -258,7 +254,6 @@ void _child_run(struct program_result *res, int commfd) {
 
 int _program_run(
     struct error_buffer *errbuf,
-    struct run_state *run,
     struct program_result *res) {
 
     int commpipe[2];
@@ -407,9 +402,7 @@ struct program_result *program_run(
     memset(res, 0, sizeof(struct program_result));
     res->prog = prog;
 
-    struct run_state run = {res};
-
-    if (_program_run(errbuf, &run, res) < 0)
+    if (_program_run(errbuf, res) < 0)
         res = NULL;
 
     return res;
