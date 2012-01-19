@@ -61,6 +61,7 @@ int main(unsigned int argc, const char *argv[]) {
     puts("start end utime stime maxrss ixrss idrss isrss minflt majflt "
          "nswap inblock oublock msgsnd msgrcv nsignals nvcsw nivcsw "
          "stdout stderr");
+    fflush(stdout);
 
     struct program_result res = program_result_init();
 
@@ -68,6 +69,7 @@ int main(unsigned int argc, const char *argv[]) {
     getrusage(RUSAGE_SELF, &res.rusage);
     print_result(&res);
     putchar('\n');
+    fflush(stdout);
 
     // run program
     while (1) {
@@ -78,6 +80,7 @@ int main(unsigned int argc, const char *argv[]) {
         }
         print_result(&res);
         putchar('\n');
+        fflush(stdout);
         program_result_free(&res);
     }
 
