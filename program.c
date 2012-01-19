@@ -12,7 +12,7 @@
 #include "program.h"
 
 #define child_die(mess) exit( \
-    child_comm_send_mess(run->comm[1], mess) < 0 \
+    child_comm_send_mess(commfd, mess) < 0 \
     ? CHILD_EXIT_COMMERROR : 1)
 
 int program_set_path(
@@ -190,7 +190,7 @@ int _open_run_output_file(
         return _open_run_tempfile(path, dst, fd, errbuf);
 }
 
-void _child_run(struct run_state *run) {
+void _child_run(struct run_state *run, int commfd) {
     struct error_buffer errbuf;
     int stdfds[3];
 
@@ -199,7 +199,7 @@ void _child_run(struct run_state *run) {
             run->res->prog->stdin, &run->res->stdin, &stdfds[0],
             &errbuf) < 0)
         child_die(errbuf.s);
-    if (child_comm_send_filepath(run->comm[1], "stdin", run->res->stdin) < 0)
+    if (child_comm_send_filepath(commfd, "stdin", run->res->stdin) < 0)
         exit(CHILD_EXIT_COMMERROR);
     if (dup2(stdfds[0], 0) < 0) {
         snprintf(errbuf.s, errbuf.n,
@@ -212,7 +212,7 @@ void _child_run(struct run_state *run) {
             run->res->prog->stdout, &run->res->stdout, &stdfds[1],
             &errbuf) < 0)
         child_die(errbuf.s);
-    if (child_comm_send_filepath(run->comm[1], "stdout", run->res->stdout) < 0)
+    if (child_comm_send_filepath(commfd, "stdout", run->res->stdout) < 0)
         exit(CHILD_EXIT_COMMERROR);
     if (dup2(stdfds[1], 1) < 0) {
         snprintf(errbuf.s, errbuf.n,
@@ -225,7 +225,7 @@ void _child_run(struct run_state *run) {
             run->res->prog->stderr, &run->res->stderr, &stdfds[2],
             &errbuf) < 0)
         child_die(errbuf.s);
-    if (child_comm_send_filepath(run->comm[1], "stderr", run->res->stderr) < 0)
+    if (child_comm_send_filepath(commfd, "stderr", run->res->stderr) < 0)
         exit(CHILD_EXIT_COMMERROR);
     if (dup2(stdfds[2], 2) < 0) {
         snprintf(errbuf.s, errbuf.n,
@@ -248,7 +248,7 @@ void _child_run(struct run_state *run) {
             strerror(errno));
         child_die(errbuf.s);
     }
-    if (child_comm_write(run->comm[1], &c) < 0)
+    if (child_comm_write(commfd, &c) < 0)
         exit(CHILD_EXIT_COMMERROR);
 
     if (execv(path, (char * const*) argv) < 0) {
@@ -272,7 +272,7 @@ int _program_run(
 
     run->pid = fork();
     if (run->pid == 0) {
-        _child_run(run);
+        _child_run(run, run->comm[1]);
         // shouldn't happen, _child_run execv()s or exit()s
         exit(0xfe);
     } else if (run->pid < 0) {
