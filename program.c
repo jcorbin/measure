@@ -136,6 +136,8 @@ int _open_run_file(
 
     if (*path == NULL)
         *path = nullfile;
+    else if (*path != nullfile && strcmp(*path, nullfile) == 0)
+        *path = nullfile;
 
     *fd = open(*path, oflag | O_CLOEXEC);
     if (*fd < 0) {
