@@ -149,10 +149,10 @@ int _open_run_file(
 }
 
 int _open_run_tempfile(
-    const char *path, const char **dst, int *fd,
+    const char **path, int *fd,
     struct error_buffer *errbuf) {
 
-    char *buf = strdup(path);
+    char *buf = strdup(*path);
     if (buf == NULL) {
         strncpy(errbuf->s, "strdup() failed", errbuf->n);
         return -1;
@@ -166,8 +166,8 @@ int _open_run_tempfile(
         return -1;
     }
 
-    *dst = buf;
-    *fd  = res;
+    *path = buf;
+    *fd   = res;
     return 0;
 }
 
@@ -181,7 +181,7 @@ int _open_run_output_file(
     if (*path == NULL || strcmp(*path, nullfile) == 0)
         return _open_run_file(nullfile, O_WRONLY, path, fd, errbuf);
     else
-        return _open_run_tempfile(*path, path, fd, errbuf);
+        return _open_run_tempfile(path, fd, errbuf);
 }
 
 static const char *stdname[3] = {"stdin", "stdout", "stderr"};
