@@ -151,13 +151,12 @@ int _open_run_file(
 int _open_run_tempfile(
     char **path, int *fd,
     struct error_buffer *errbuf) {
-    int res = mkostemp(*path, O_WRONLY | O_CLOEXEC);
-    if (res < 0) {
+    *fd = mkostemp(*path, O_WRONLY | O_CLOEXEC);
+    if (*fd < 0) {
         snprintf(errbuf->s, errbuf->n,
             "mkstemp() failed for %s: %s", path, strerror(errno));
         return -1;
     }
-    *fd = res;
     return 0;
 }
 
