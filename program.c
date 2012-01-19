@@ -177,19 +177,10 @@ void _child_run(struct program_result *res, int commfd) {
         res->prog->stderr};
     const char **stdpaths = progpaths;
 
-    // stdin
-    if (_open_run_file(&stdpaths[0], stdflags[0], &stdfds[0], &errbuf) < 0)
-        child_die(errbuf.s);
-
-    // stdout
-    if (_open_run_file(&stdpaths[1], stdflags[1], &stdfds[1], &errbuf) < 0)
-        child_die(errbuf.s);
-
-    // stderr
-    if (_open_run_file(&stdpaths[2], stdflags[2], &stdfds[2], &errbuf) < 0)
-        child_die(errbuf.s);
-
     for (int i=0; i<3; i++) {
+        if (_open_run_file(&stdpaths[i], stdflags[i], &stdfds[i], &errbuf) < 0)
+            child_die(errbuf.s);
+
         if (child_comm_send_filepath(commfd, stdname[i], stdpaths[i]) < 0)
             exit(CHILD_EXIT_COMMERROR);
 
