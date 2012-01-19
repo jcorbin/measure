@@ -262,17 +262,19 @@ int _program_run(
     struct error_buffer *errbuf,
     struct run_state *run) {
 
-    if (pipe(run->comm) < 0) {
+    int commpipe[2];
+
+    if (pipe(commpipe) < 0) {
         snprintf(errbuf->s, errbuf->n,
             "pipe() failed: %s", strerror(errno));
         return -1;
     }
-    fcntl(run->comm[0], F_SETFD, FD_CLOEXEC);
-    fcntl(run->comm[1], F_SETFD, FD_CLOEXEC);
+    fcntl(commpipe[0], F_SETFD, FD_CLOEXEC);
+    fcntl(commpipe[1], F_SETFD, FD_CLOEXEC);
 
     run->pid = fork();
     if (run->pid == 0) {
-        _child_run(run, run->comm[1]);
+        _child_run(run, commpipe[1]);
         // shouldn't happen, _child_run execv()s or exit()s
         exit(0xfe);
     } else if (run->pid < 0) {
@@ -281,7 +283,7 @@ int _program_run(
         return -1;
     }
 
-    if (close(run->comm[1]) < -1) {
+    if (close(commpipe[1]) < -1) {
         snprintf(errbuf->s, errbuf->n,
             "failed to close child write pipe: %s", strerror(errno));
         return -1;
@@ -307,7 +309,7 @@ int _program_run(
 
     unsigned char got_start = 0;
     struct child_comm comm = {0, 0, NULL};
-    while (child_comm_read(run->comm[0], &comm) == 0) {
+    while (child_comm_read(commpipe[0], &comm) == 0) {
         if (comm.id == CHILD_COMM_ID_MESS) {
             *((char *) comm.data + comm.len - 1) = '\0';
             strncpy(errbuf->s, "child failed: ", errbuf->n);
@@ -389,7 +391,7 @@ int _program_run(
         return -1;
     }
 
-    if (close(run->comm[0]) < -1) {
+    if (close(commpipe[0]) < -1) {
         snprintf(errbuf->s, errbuf->n,
             "failed to close child read pipe: %s", strerror(errno));
         return -1;
