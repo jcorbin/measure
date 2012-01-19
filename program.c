@@ -190,10 +190,14 @@ void _child_run(struct program_result *res, int commfd) {
     struct error_buffer errbuf;
     int stdfds[3];
     const char *buf;
+    const char *stdpaths[3] = {
+        res->prog->stdin,
+        res->prog->stdout,
+        res->prog->stderr};
 
     // stdin
     if (_open_run_input_file(
-            res->prog->stdin, &buf, &stdfds[0],
+            stdpaths[0], &buf, &stdfds[0],
             &errbuf) < 0)
         child_die(errbuf.s);
     if (child_comm_send_filepath(commfd, stdname[0], buf) < 0)
@@ -208,7 +212,7 @@ void _child_run(struct program_result *res, int commfd) {
 
     // stdout
     if (_open_run_output_file(
-            res->prog->stdout, &buf, &stdfds[1],
+            stdpaths[1], &buf, &stdfds[1],
             &errbuf) < 0)
         child_die(errbuf.s);
     if (child_comm_send_filepath(commfd, stdname[1], buf) < 0)
@@ -223,7 +227,7 @@ void _child_run(struct program_result *res, int commfd) {
 
     // stderr
     if (_open_run_output_file(
-            res->prog->stderr, &buf, &stdfds[2],
+            stdpaths[2], &buf, &stdfds[2],
             &errbuf) < 0)
         child_die(errbuf.s);
     if (child_comm_send_filepath(commfd, stdname[2], buf) < 0)
