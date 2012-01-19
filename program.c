@@ -171,8 +171,8 @@ int _open_run_tempfile(
     return 0;
 }
 
-#define _open_run_input_file(path, dst, fd, errbuf) \
-    _open_run_file(path, O_RDONLY, dst, fd, errbuf)
+#define _open_run_input_file(path, fd, errbuf) \
+    _open_run_file(*path, O_RDONLY, path, fd, errbuf)
 
 int _open_run_output_file(
     const char *path, const char **dst, int *fd,
@@ -196,11 +196,9 @@ void _child_run(struct program_result *res, int commfd) {
         res->prog->stderr};
 
     // stdin
-    if (_open_run_input_file(
-            stdpaths[0], &buf, &stdfds[0],
-            &errbuf) < 0)
+    if (_open_run_input_file(&stdpaths[0], &stdfds[0], &errbuf) < 0)
         child_die(errbuf.s);
-    if (child_comm_send_filepath(commfd, stdname[0], buf) < 0)
+    if (child_comm_send_filepath(commfd, stdname[0], stdpaths[0]) < 0)
         exit(CHILD_EXIT_COMMERROR);
     if (dup2(stdfds[0], 0) < 0) {
         snprintf(errbuf.s, errbuf.n,
