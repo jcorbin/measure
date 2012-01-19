@@ -166,6 +166,7 @@ int _open_run_file(
 }
 
 static const char *stdname[3] = {"stdin", "stdout", "stderr"};
+static const int stdflags[3] = {O_RDONLY, O_WRONLY, O_WRONLY};
 
 void _child_run(struct program_result *res, int commfd) {
     struct error_buffer errbuf;
@@ -177,15 +178,15 @@ void _child_run(struct program_result *res, int commfd) {
     const char **stdpaths = progpaths;
 
     // stdin
-    if (_open_run_file(&stdpaths[0], O_RDONLY, &stdfds[0], &errbuf) < 0)
+    if (_open_run_file(&stdpaths[0], stdflags[0], &stdfds[0], &errbuf) < 0)
         child_die(errbuf.s);
 
     // stdout
-    if (_open_run_file(&stdpaths[1], O_WRONLY, &stdfds[1], &errbuf) < 0)
+    if (_open_run_file(&stdpaths[1], stdflags[1], &stdfds[1], &errbuf) < 0)
         child_die(errbuf.s);
 
     // stderr
-    if (_open_run_file(&stdpaths[2], O_WRONLY, &stdfds[2], &errbuf) < 0)
+    if (_open_run_file(&stdpaths[2], stdflags[2], &stdfds[2], &errbuf) < 0)
         child_die(errbuf.s);
 
     for (int i=0; i<3; i++) {
