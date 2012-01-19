@@ -271,12 +271,12 @@ int _program_run(
     fcntl(commpipe[0], F_SETFD, FD_CLOEXEC);
     fcntl(commpipe[1], F_SETFD, FD_CLOEXEC);
 
-    run->pid = fork();
-    if (run->pid == 0) {
+    pid_t pid = fork();
+    if (pid == 0) {
         _child_run(run->res, commpipe[1]);
         // shouldn't happen, _child_run execv()s or exit()s
         exit(0xfe);
-    } else if (run->pid < 0) {
+    } else if (pid < 0) {
         snprintf(errbuf->s, errbuf->n,
             "fork() failed: %s", strerror(errno));
         return -1;
@@ -292,7 +292,7 @@ int _program_run(
     //       * pause(3P)
     //       * sigaction(3P)
 
-    pid_t r = wait4(run->pid, &run->res->status, 0, &run->res->rusage);
+    pid_t r = wait4(pid, &run->res->status, 0, &run->res->rusage);
     if (r < 0) {
         snprintf(errbuf->s, errbuf->n,
             "wait4 failed: %s", strerror(errno));
