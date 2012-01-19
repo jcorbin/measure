@@ -201,9 +201,6 @@ void _child_run(struct program_result *res, int commfd) {
     if (_child_std_setup(res, commfd, &errbuf) < 0)
         child_die(errbuf.s);
 
-    const char *path  = res->prog->path;
-    const char **argv = res->prog->argv;
-
     struct timespec t;
     struct child_comm c;
     c.id   = CHILD_COMM_ID_STARTTIME;
@@ -219,7 +216,7 @@ void _child_run(struct program_result *res, int commfd) {
     if (child_comm_write(commfd, &c) < 0)
         exit(CHILD_EXIT_COMMERROR);
 
-    if (execv(path, (char * const*) argv) < 0) {
+    if (execv(res->prog->path, (char * const*) res->prog->argv) < 0) {
         snprintf(errbuf.s, errbuf.n,
             "execv() failed: %s", strerror(errno));
         child_die(errbuf.s);
