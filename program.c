@@ -273,7 +273,7 @@ int _program_run(
 
     pid_t pid = fork();
     if (pid == 0) {
-        _child_run(run->res, commpipe[1]);
+        _child_run(res, commpipe[1]);
         // shouldn't happen, _child_run execv()s or exit()s
         exit(0xfe);
     } else if (pid < 0) {
@@ -292,14 +292,14 @@ int _program_run(
     //       * pause(3P)
     //       * sigaction(3P)
 
-    pid_t r = wait4(pid, &run->res->status, 0, &run->res->rusage);
+    pid_t r = wait4(pid, &res->status, 0, &res->rusage);
     if (r < 0) {
         snprintf(errbuf->s, errbuf->n,
             "wait4 failed: %s", strerror(errno));
         return -1;
     }
 
-    if (clock_gettime(CLOCK_MONOTONIC_RAW, &run->res->end) != 0) {
+    if (clock_gettime(CLOCK_MONOTONIC_RAW, &res->end) != 0) {
         snprintf(errbuf->s, errbuf->n,
             "clock_gettime(CLOCK_MONOTONIC_RAW) failed: %s",
             strerror(errno));
@@ -331,11 +331,11 @@ int _program_run(
 
             const char **dst = NULL;
             if (strcmp(name, "stdin") == 0)
-                dst = &run->res->stdin;
+                dst = &res->stdin;
             else if (strcmp(name, "stdout") == 0)
-                dst = &run->res->stdout;
+                dst = &res->stdout;
             else if (strcmp(name, "stderr") == 0)
-                dst = &run->res->stderr;
+                dst = &res->stderr;
             else {
                 snprintf(errbuf->s, errbuf->n,
                     "invalid filepath name \"%s\"", name);
@@ -357,7 +357,7 @@ int _program_run(
                 free((void *) comm.data);
                 return -1;
             }
-            memcpy(&run->res->start, comm.data, sizeof(struct timespec));
+            memcpy(&res->start, comm.data, sizeof(struct timespec));
             got_start = 1;
         } else {
             snprintf(errbuf->s, errbuf->n,
@@ -372,20 +372,20 @@ int _program_run(
     }
 
     if (! got_start) {
-        if (WIFEXITED(run->res->status)) {
-            unsigned char exitval = WEXITSTATUS(run->res->status);
+        if (WIFEXITED(res->status)) {
+            unsigned char exitval = WEXITSTATUS(res->status);
             if (exitval == CHILD_EXIT_COMMERROR)
                 strncpy(errbuf->s, "chlid communication error", errbuf->n);
             else
                 snprintf(errbuf->s, errbuf->n,
-                    "unknown child failure, exited %i", run->res->status);
-        } else if (WIFSIGNALED(run->res->status)) {
+                    "unknown child failure, exited %i", res->status);
+        } else if (WIFSIGNALED(res->status)) {
             snprintf(errbuf->s, errbuf->n,
-                "child exited due to signal %i", WTERMSIG(run->res->status));
+                "child exited due to signal %i", WTERMSIG(res->status));
             return -1;
         } else {
             snprintf(errbuf->s, errbuf->n,
-                "unknown child failure, exit status %x", run->res->status);
+                "unknown child failure, exit status %x", res->status);
         }
         return -1;
     }
