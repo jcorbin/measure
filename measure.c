@@ -43,6 +43,13 @@ int main(unsigned int argc, const char *argv[]) {
     char _errbuf[ERRBUF_SIZE];
     struct error_buffer errbuf = {ERRBUF_SIZE-1, _errbuf};
 
+    const char *calledname;
+    calledname = rindex(argv[0], '/');
+    if (calledname != NULL)
+        calledname++;
+    else
+        calledname = argv[0];
+
     struct program prog = program_init();
     prog.stdin  = NULL; // TODO: support "-";
     prog.stdout = "stdout_XXXXXX";
@@ -73,6 +80,8 @@ int main(unsigned int argc, const char *argv[]) {
 
     // TODO: handle SIGPIPE and unlink output files which weren't consumed
 
+    unsigned int issample = strcmp(calledname, "sample") == 0;
+
     // run program
     while (1) {
         if (program_run(&prog, &res, &errbuf) == NULL) {
@@ -84,6 +93,8 @@ int main(unsigned int argc, const char *argv[]) {
         putchar('\n');
         fflush(stdout);
         program_result_free(&res);
+        if (! issample)
+            break;
     }
 
     // TODO: free things?
