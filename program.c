@@ -139,12 +139,29 @@ int _open_run_file(
     else if (*path != nullfile && strcmp(*path, nullfile) == 0)
         *path = nullfile;
 
-    *fd = open(*path, oflag | O_CLOEXEC);
-    if (*fd < 0) {
-        snprintf(errbuf->s, errbuf->n,
-            "failed to open %s: %s", *path, strerror(errno));
-        return -1;
+    if (oflag & O_WRONLY && *path != nullfile) {
+        char *buf = strdup(*path);
+        if (buf == NULL) {
+            strncpy(errbuf->s, "strdup() failed", errbuf->n);
+            return -1;
+        }
+        *fd = mkostemp(buf, oflag | O_CLOEXEC);
+        if (*fd < 0) {
+            snprintf(errbuf->s, errbuf->n,
+                "mkstemp() failed for %s: %s", *path, strerror(errno));
+            free(buf);
+            return -1;
+        }
+        *path = buf;
+    } else {
+        *fd = open(*path, oflag | O_CLOEXEC);
+        if (*fd < 0) {
+            snprintf(errbuf->s, errbuf->n,
+                "failed to open %s: %s", *path, strerror(errno));
+            return -1;
+        }
     }
+
     return 0;
 }
 
@@ -156,21 +173,7 @@ int _open_run_output_file(
         *path = nullfile;
         return _open_run_file(path, O_WRONLY, fd, errbuf);
     } else {
-        char *buf = strdup(*path);
-        if (buf == NULL) {
-            strncpy(errbuf->s, "strdup() failed", errbuf->n);
-            return -1;
-        }
-        *fd = mkostemp(buf, O_WRONLY | O_CLOEXEC);
-        if (*fd < 0) {
-            snprintf(errbuf->s, errbuf->n,
-                "mkstemp() failed for %s: %s", *path, strerror(errno));
-            free(buf);
-            return -1;
-        } else {
-            *path = buf;
-            return 0;
-        }
+        return _open_run_file(path, O_WRONLY, fd, errbuf);
     }
 }
 
