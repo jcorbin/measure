@@ -189,13 +189,14 @@ static const char *stdname[3] = {"stdin", "stdout", "stderr"};
 void _child_run(struct program_result *res, int commfd) {
     struct error_buffer errbuf;
     int stdfds[3];
+    const char *buf;
 
     // stdin
     if (_open_run_input_file(
-            res->prog->stdin, &res->stdin, &stdfds[0],
+            res->prog->stdin, &buf, &stdfds[0],
             &errbuf) < 0)
         child_die(errbuf.s);
-    if (child_comm_send_filepath(commfd, stdname[0], res->stdin) < 0)
+    if (child_comm_send_filepath(commfd, stdname[0], buf) < 0)
         exit(CHILD_EXIT_COMMERROR);
     if (dup2(stdfds[0], 0) < 0) {
         snprintf(errbuf.s, errbuf.n,
@@ -203,12 +204,14 @@ void _child_run(struct program_result *res, int commfd) {
         child_die(errbuf.s);
     }
 
+    // TODO: buf leaks
+
     // stdout
     if (_open_run_output_file(
-            res->prog->stdout, &res->stdout, &stdfds[1],
+            res->prog->stdout, &buf, &stdfds[1],
             &errbuf) < 0)
         child_die(errbuf.s);
-    if (child_comm_send_filepath(commfd, stdname[1], res->stdout) < 0)
+    if (child_comm_send_filepath(commfd, stdname[1], buf) < 0)
         exit(CHILD_EXIT_COMMERROR);
     if (dup2(stdfds[1], 1) < 0) {
         snprintf(errbuf.s, errbuf.n,
@@ -216,18 +219,22 @@ void _child_run(struct program_result *res, int commfd) {
         child_die(errbuf.s);
     }
 
+    // TODO: buf leaks again
+
     // stderr
     if (_open_run_output_file(
-            res->prog->stderr, &res->stderr, &stdfds[2],
+            res->prog->stderr, &buf, &stdfds[2],
             &errbuf) < 0)
         child_die(errbuf.s);
-    if (child_comm_send_filepath(commfd, stdname[2], res->stderr) < 0)
+    if (child_comm_send_filepath(commfd, stdname[2], buf) < 0)
         exit(CHILD_EXIT_COMMERROR);
     if (dup2(stdfds[2], 2) < 0) {
         snprintf(errbuf.s, errbuf.n,
             "%s dup2 failed: %s", stdname[2], strerror(errno));
         child_die(errbuf.s);
     }
+
+    // TODO: buf leaks yet again
 
     const char *path  = res->prog->path;
     const char **argv = res->prog->argv;
