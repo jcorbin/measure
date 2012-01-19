@@ -133,8 +133,11 @@ void program_result_free(struct program_result *res) {
 static const char *stdname[3] = {"stdin", "stdout", "stderr"};
 static const int stdflags[3] = {O_RDONLY, O_WRONLY, O_WRONLY};
 
-void _child_run(struct program_result *res, int commfd) {
-    struct error_buffer errbuf;
+int _child_std_setup(
+        struct program_result *res,
+        int commfd,
+        struct error_buffer *errbuf) {
+
     int stdfds[3];
     const char *progpaths[3] = {
         res->prog->stdin,
@@ -151,39 +154,52 @@ void _child_run(struct program_result *res, int commfd) {
 
         if (stdflags[i] & O_WRONLY && stdpaths[i] != nullfile) {
             char *buf = strdup(stdpaths[i]);
-            if (buf == NULL)
-                child_die("strdup() failed");
+            if (buf == NULL) {
+                strncpy(errbuf->s, "strdup() failed", errbuf->n);
+                return -1;
+            }
             stdfds[i] = mkostemp(buf, stdflags[i] | O_CLOEXEC);
             if (stdfds[i] < 0) {
-                snprintf(errbuf.s, errbuf.n, "mkstemp() failed for %s: %s",
+                snprintf(errbuf->s, errbuf->n, "mkstemp() failed for %s: %s",
                     stdpaths[i], strerror(errno));
-                child_die(errbuf.s);
+                free(buf);
+                return -1;
             }
             stdpaths[i] = buf;
         } else {
             stdfds[i] = open(stdpaths[i], stdflags[i] | O_CLOEXEC);
             if (stdfds[i] < 0) {
-                snprintf(errbuf.s, errbuf.n, "failed to open %s: %s",
+                snprintf(errbuf->s, errbuf->n, "failed to open %s: %s",
                     stdpaths[i], strerror(errno));
-                child_die(errbuf.s);
+                return -1;
             }
         }
 
         if (child_comm_send_filepath(commfd, stdname[i], stdpaths[i]) < 0)
             exit(CHILD_EXIT_COMMERROR);
 
-        if (dup2(stdfds[i], i) < 0) {
-            snprintf(errbuf.s, errbuf.n,
-                "%s dup2 failed: %s", stdname[i], strerror(errno));
-            child_die(errbuf.s);
-        }
-
         if (stdpaths[i] != NULL &&
             stdpaths[i] != nullfile &&
             stdpaths[i] != progpaths[i])
             free((void *) stdpaths[i]);
+
+        if (dup2(stdfds[i], i) < 0) {
+            snprintf(errbuf->s, errbuf->n,
+                "%s dup2 failed: %s", stdname[i], strerror(errno));
+            return -1;
+        }
+
         stdpaths[i] = NULL;
     }
+
+    return 0;
+}
+
+void _child_run(struct program_result *res, int commfd) {
+    struct error_buffer errbuf;
+
+    if (_child_std_setup(res, commfd, &errbuf) < 0)
+        child_die(errbuf.s);
 
     const char *path  = res->prog->path;
     const char **argv = res->prog->argv;
