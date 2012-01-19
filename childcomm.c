@@ -68,7 +68,7 @@ int child_comm_send_filepath(int fd, const char *name, const char *path) {
     c.id   = CHILD_COMM_ID_FILEPATH;
     c.len  = namelen + 1 + pathlen + 1;
     c.data = buf = malloc(c.len);
-    if (c.data == NULL)
+    if (buf == NULL)
         return -1;
 
     memcpy(buf, name, namelen);
@@ -82,6 +82,6 @@ int child_comm_send_filepath(int fd, const char *name, const char *path) {
     int r = 0;
     if (child_comm_write(fd, &c) < 0)
         r = -1;
-    free(buf);
+    free((void *) c.data);
     return r;
 }
