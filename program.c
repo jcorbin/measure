@@ -137,13 +137,12 @@ int _open_run_file(
     if (*path == NULL)
         *path = nullfile;
 
-    int res = open(*path, oflag | O_CLOEXEC);
-    if (res < 0) {
+    *fd = open(*path, oflag | O_CLOEXEC);
+    if (*fd < 0) {
         snprintf(errbuf->s, errbuf->n,
             "failed to open %s: %s", *path, strerror(errno));
         return -1;
     }
-    *fd = res;
     return 0;
 }
 
