@@ -198,22 +198,19 @@ void _child_run(struct program_result *res, int commfd) {
     // stdin
     if (_open_run_input_file(&stdpaths[0], &stdfds[0], &errbuf) < 0)
         child_die(errbuf.s);
-    if (child_comm_send_filepath(commfd, stdname[0], stdpaths[0]) < 0)
-        exit(CHILD_EXIT_COMMERROR);
 
     // stdout
     if (_open_run_output_file(&stdpaths[1], &stdfds[1], &errbuf) < 0)
         child_die(errbuf.s);
-    if (child_comm_send_filepath(commfd, stdname[1], stdpaths[1]) < 0)
-        exit(CHILD_EXIT_COMMERROR);
 
     // stderr
     if (_open_run_output_file(&stdpaths[2], &stdfds[2], &errbuf) < 0)
         child_die(errbuf.s);
-    if (child_comm_send_filepath(commfd, stdname[2], stdpaths[2]) < 0)
-        exit(CHILD_EXIT_COMMERROR);
 
     for (int i=0; i<3; i++) {
+        if (child_comm_send_filepath(commfd, stdname[i], stdpaths[i]) < 0)
+            exit(CHILD_EXIT_COMMERROR);
+
         if (dup2(stdfds[i], i) < 0) {
             snprintf(errbuf.s, errbuf.n,
                 "%s dup2 failed: %s", stdname[i], strerror(errno));
