@@ -131,32 +131,32 @@ void program_result_free(struct program_result *res) {
 }
 
 int _open_run_file(
-    const char *path, int oflag,
-    const char **dst, int *fd,
+    const char **path, int oflag, int *fd,
     struct error_buffer *errbuf) {
 
-    if (path == NULL) path = nullfile;
-    int res = open(path, oflag | O_CLOEXEC);
+    if (*path == NULL)
+        *path = nullfile;
+
+    int res = open(*path, oflag | O_CLOEXEC);
     if (res < 0) {
         snprintf(errbuf->s, errbuf->n,
-            "failed to open %s: %s", path, strerror(errno));
+            "failed to open %s: %s", *path, strerror(errno));
         return -1;
     }
-
-    *dst = path;
-    *fd  = res;
+    *fd = res;
     return 0;
 }
 
 #define _open_run_input_file(path, fd, errbuf) \
-    _open_run_file(*path, O_RDONLY, path, fd, errbuf)
+    _open_run_file(path, O_RDONLY, fd, errbuf)
 
 int _open_run_output_file(
     const char **path, int *fd,
     struct error_buffer *errbuf) {
 
     if (*path == NULL || strcmp(*path, nullfile) == 0) {
-        return _open_run_file(nullfile, O_WRONLY, path, fd, errbuf);
+        *path = nullfile;
+        return _open_run_file(path, O_WRONLY, fd, errbuf);
     } else {
         char *buf = strdup(*path);
         if (buf == NULL) {
