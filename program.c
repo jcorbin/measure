@@ -148,18 +148,6 @@ int _open_run_file(
     return 0;
 }
 
-int _open_run_tempfile(
-    char **path, int *fd,
-    struct error_buffer *errbuf) {
-    *fd = mkostemp(*path, O_WRONLY | O_CLOEXEC);
-    if (*fd < 0) {
-        snprintf(errbuf->s, errbuf->n,
-            "mkstemp() failed for %s: %s", path, strerror(errno));
-        return -1;
-    }
-    return 0;
-}
-
 #define _open_run_input_file(path, fd, errbuf) \
     _open_run_file(*path, O_RDONLY, path, fd, errbuf)
 
@@ -175,12 +163,16 @@ int _open_run_output_file(
             strncpy(errbuf->s, "strdup() failed", errbuf->n);
             return -1;
         }
-        int r = _open_run_tempfile(&buf, fd, errbuf);
-        if (r < -1)
+        *fd = mkostemp(buf, O_WRONLY | O_CLOEXEC);
+        if (*fd < 0) {
+            snprintf(errbuf->s, errbuf->n,
+                "mkstemp() failed for %s: %s", *path, strerror(errno));
             free(buf);
-        else
+            return -1;
+        } else {
             *path = buf;
-        return r;
+            return 0;
+        }
     }
 }
 
