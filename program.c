@@ -189,16 +189,16 @@ int _open_run_output_file(
         return _open_run_tempfile(path, dst, fd, errbuf);
 }
 
-void _child_run(struct run_state *run, int commfd) {
+void _child_run(struct run_state *run, struct program_result *res, int commfd) {
     struct error_buffer errbuf;
     int stdfds[3];
 
     // stdin
     if (_open_run_input_file(
-            run->res->prog->stdin, &run->res->stdin, &stdfds[0],
+            res->prog->stdin, &res->stdin, &stdfds[0],
             &errbuf) < 0)
         child_die(errbuf.s);
-    if (child_comm_send_filepath(commfd, "stdin", run->res->stdin) < 0)
+    if (child_comm_send_filepath(commfd, "stdin", res->stdin) < 0)
         exit(CHILD_EXIT_COMMERROR);
     if (dup2(stdfds[0], 0) < 0) {
         snprintf(errbuf.s, errbuf.n,
@@ -208,10 +208,10 @@ void _child_run(struct run_state *run, int commfd) {
 
     // stdout
     if (_open_run_output_file(
-            run->res->prog->stdout, &run->res->stdout, &stdfds[1],
+            res->prog->stdout, &res->stdout, &stdfds[1],
             &errbuf) < 0)
         child_die(errbuf.s);
-    if (child_comm_send_filepath(commfd, "stdout", run->res->stdout) < 0)
+    if (child_comm_send_filepath(commfd, "stdout", res->stdout) < 0)
         exit(CHILD_EXIT_COMMERROR);
     if (dup2(stdfds[1], 1) < 0) {
         snprintf(errbuf.s, errbuf.n,
@@ -221,10 +221,10 @@ void _child_run(struct run_state *run, int commfd) {
 
     // stderr
     if (_open_run_output_file(
-            run->res->prog->stderr, &run->res->stderr, &stdfds[2],
+            res->prog->stderr, &res->stderr, &stdfds[2],
             &errbuf) < 0)
         child_die(errbuf.s);
-    if (child_comm_send_filepath(commfd, "stderr", run->res->stderr) < 0)
+    if (child_comm_send_filepath(commfd, "stderr", res->stderr) < 0)
         exit(CHILD_EXIT_COMMERROR);
     if (dup2(stdfds[2], 2) < 0) {
         snprintf(errbuf.s, errbuf.n,
@@ -232,8 +232,8 @@ void _child_run(struct run_state *run, int commfd) {
         child_die(errbuf.s);
     }
 
-    const char *path  = run->res->prog->path;
-    const char **argv = run->res->prog->argv;
+    const char *path  = res->prog->path;
+    const char **argv = res->prog->argv;
 
     struct timespec t;
     struct child_comm c;
@@ -273,7 +273,7 @@ int _program_run(
 
     run->pid = fork();
     if (run->pid == 0) {
-        _child_run(run, commpipe[1]);
+        _child_run(run, run->res, commpipe[1]);
         // shouldn't happen, _child_run execv()s or exit()s
         exit(0xfe);
     } else if (run->pid < 0) {
