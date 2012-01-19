@@ -133,7 +133,6 @@ void program_result_free(struct program_result *res) {
 struct run_state {
     struct program_result *res;
     pid_t pid;
-    int comm[2];
 };
 
 int _open_run_file(
@@ -408,7 +407,7 @@ struct program_result *program_run(
     memset(res, 0, sizeof(struct program_result));
     res->prog = prog;
 
-    struct run_state run = {res, 0, {-1, -1}};
+    struct run_state run = {res, 0};
 
     if (_program_run(errbuf, &run) < 0)
         res = NULL;
