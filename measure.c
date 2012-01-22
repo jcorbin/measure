@@ -60,14 +60,25 @@ void usage(unsigned int longhelp) {
         exit(0);
     }
 
-    fprintf(stderr, "\n"
-        "A header row is output first, followed by a baseline of the measuring\n"
-        "process's resource usage. If --usage is specified, this usage is taken\n"
-        "and output before every command result row.\n\n"
-        "The output fields are:\n"
-        "- start and end time from the monotonic clock (see clock_gettime(3))\n"
-        "- process exit status and resource usage (see wait4(2))\n"
-        "- temporary files containing stdout and stderr output\n");
+    fprintf(stderr,
+        "\nOutput format:\n"
+        "  - Fields are space-separated, the first row is a header.\n"
+        "  - The measuring process's resource usage is output first, with all\n"
+        "    non-resource usage fields set to zero. If --usage was given, this\n"
+        "    measurement is taken and output before every command execution,\n"
+        "    not just the first; consequentially, --usage only makes sense for\n"
+        "    sample (since measure only runs the command once).\n"
+        "  - There-after the command is run (possibly many times) and the\n"
+        "    fields described below are collected and output.\n"
+
+        "\nOutput fields:\n"
+        "  - start and end time from the monotonic clock as reported by\n"
+        "    clock_gettime(3); times are represented as 'Ns,Mns' pairs where N\n"
+        "    and M are integral counts of seconds and nanoseconds respectively.\n"
+        "  - process exit status and resource usage (see wait4(2)).\n"
+        "  - temporary files stdout_XXXXXX and stderr_XXXXXX are created in the\n"
+        "    current working directory (for random values of XXXXXX) for each\n"
+        "    command run; the corresponding filenames are in the final fields.\n");
 
     exit(0);
 }
