@@ -50,6 +50,7 @@ int main(unsigned int argc, const char *argv[]) {
     else
         calledname = argv[0];
 
+    unsigned int printusage = 1;
     struct program prog = program_init();
     prog.stdin  = NULL; // TODO: support "-";
     prog.stdout = "stdout_XXXXXX";
@@ -72,18 +73,22 @@ int main(unsigned int argc, const char *argv[]) {
 
     struct program_result res = program_result_init();
 
-    // baseline
-    getrusage(RUSAGE_SELF, &res.rusage);
-    print_result(&res);
-    putchar('\n');
-    fflush(stdout);
-
     // TODO: handle SIGPIPE and unlink output files which weren't consumed
 
     unsigned int issample = strcmp(calledname, "sample") == 0;
 
-    // run program
     while (1) {
+        if (printusage) {
+            // usage before running program
+            memset(&res, 0, sizeof(struct program_result));
+            getrusage(RUSAGE_SELF, &res.rusage);
+            print_result(&res);
+            putchar('\n');
+            fflush(stdout);
+            printusage = 0;
+        }
+
+        // run program
         if (program_run(&prog, &res, &errbuf) == NULL) {
             fputs(errbuf.s, stderr);
             fputc('\n', stderr);
@@ -93,6 +98,7 @@ int main(unsigned int argc, const char *argv[]) {
         putchar('\n');
         fflush(stdout);
         program_result_free(&res);
+
         if (! issample)
             break;
     }
