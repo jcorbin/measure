@@ -42,7 +42,9 @@ void print_result(struct program_result *res) {
 static const char *calledname = NULL;
 
 void usage(void) {
-    fprintf(stderr, "Usage: %s command [command arguments]\n", calledname);
+    fprintf(stderr,
+        "Usage: %s [options] [--] command [command arguments]\n",
+        calledname);
     exit(0);
 }
 
