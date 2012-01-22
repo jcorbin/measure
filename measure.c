@@ -44,11 +44,22 @@ static const char *calledname = NULL;
 void usage(void) {
     fprintf(stderr,
         "Usage: %s [options] [--] command [command arguments]\n"
+        "Run a command %s and collect various measurements.\n"
         "\n"
         "  -h, --help  Show this usage screen.\n"
-        "  --usage     Print resource usage of the %s tool before\n"
-        "              each command run.\n",
-        calledname, calledname);
+        "  --usage     Print resource usage of the measuring process before\n"
+        "              each command run; the default is to print only the\n"
+        "              initial baseline.\n"
+        "\n"
+        "A header row is output first, followed by a baseline of the measuring\n"
+        "process's resource usage. If --usage is specified, this usage is taken\n"
+        "and output before every command result row.\n\n"
+        "The output fields are:\n"
+        "- start and end time from the monotonic clock (see clock_gettime(3))\n"
+        "- process exit status and resource usage (see wait4(2))\n"
+        "- temporary files containing stdout and stderr output\n",
+        calledname,
+        strcmp(calledname, "sample") == 0 ? "repeatedly" : "once");
     exit(0);
 }
 
