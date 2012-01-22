@@ -56,11 +56,19 @@ int main(unsigned int argc, const char *argv[]) {
     prog.stdout = "stdout_XXXXXX";
     prog.stderr = "stderr_XXXXXX";
 
-    if (argc >= 2)
-        if (program_set_argv(&prog, argc-1, argv+1, &errbuf) != 0) {
-            fprintf(stderr, "invalid program: %s\n", errbuf.s);
+    unsigned int i;
+    for (i=1; i<argc; i++)
+        if (argv[i][0] == '-') {
+            fprintf(stderr, "%s: unrecognized option '%s'\n",
+                calledname, argv[i]);
             exit(1);
-        }
+        } else
+            break;
+
+    if (i < argc && program_set_argv(&prog, argc-i, argv+i, &errbuf) != 0) {
+        fprintf(stderr, "%s: invalid command, %s\n", calledname, errbuf.s);
+        exit(1);
+    }
 
     if (prog.path == NULL) {
         fprintf(stderr, "missing program argument\n");
