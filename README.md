@@ -1,6 +1,7 @@
 # Measure is a program to measure programs... really!
 
 So there's the time command, which gets you basic runtime and CPU, but:
+
 * its output isn't easily parsed
 * only measures time (not say memory usage)
 * oh and its resolution sucks: "time ls" ... it took _zero_seconds_? really?
@@ -15,6 +16,7 @@ Right so there's this (seemingly) little-used wait4(2) function which
 returns _resource_usage_ of a child process.
 
 What measure does is take a command, runs it, and collects:
+
 * high resolution (nanoseconds on Linux) wallclock runtime
 * returncode (in case your program is less than deterministic, you just might care)
 * resource usage, including
