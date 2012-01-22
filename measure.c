@@ -41,6 +41,11 @@ void print_result(struct program_result *res) {
 
 static const char *calledname = NULL;
 
+void usage(void) {
+    fprintf(stderr, "Usage: %s command [command arguments]\n", calledname);
+    exit(0);
+}
+
 int main(unsigned int argc, const char *argv[]) {
     char _errbuf[ERRBUF_SIZE];
     struct error_buffer errbuf = {ERRBUF_SIZE-1, _errbuf};
@@ -60,9 +65,14 @@ int main(unsigned int argc, const char *argv[]) {
     unsigned int i;
     for (i=1; i<argc; i++)
         if (argv[i][0] == '-') {
-            fprintf(stderr, "%s: unrecognized option '%s'\n",
-                calledname, argv[i]);
-            exit(1);
+            if (strcmp(argv[i], "-h") == 0 ||
+                strcmp(argv[i], "--help") == 0) {
+                usage();
+            } else {
+                fprintf(stderr, "%s: unrecognized option '%s'\n",
+                    calledname, argv[i]);
+                exit(1);
+            }
         } else
             break;
 
