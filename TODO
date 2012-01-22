@@ -1,0 +1,6 @@
+* a basic Python module for ease of use
+* a basic stats tool to chain onto sample
+* a (either git-like or uses-git) tool which at least dedupes or otherwise
+  stores away stdout/stderr output from large runs; bonus points for also
+  storing the run data from sample alongside this data somehow
+* for more, just grep TODO *.{h,c}
