@@ -34,7 +34,7 @@ void print_result(struct program_result *res) {
         r->ru_msgsnd, r->ru_msgrcv, r->ru_nsignals,
         r->ru_nvcsw, r->ru_nivcsw);
 
-    printf(" \"%s\" \"%s\"", res->stdout, res->stderr);
+    printf(" %s %s", res->stdout, res->stderr);
 }
 
 #define ERRBUF_SIZE 4096
