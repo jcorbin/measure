@@ -39,11 +39,12 @@ void print_result(struct program_result *res) {
 
 #define ERRBUF_SIZE 4096
 
+static const char *calledname = NULL;
+
 int main(unsigned int argc, const char *argv[]) {
     char _errbuf[ERRBUF_SIZE];
     struct error_buffer errbuf = {ERRBUF_SIZE-1, _errbuf};
 
-    const char *calledname;
     calledname = rindex(argv[0], '/');
     if (calledname != NULL)
         calledname++;
