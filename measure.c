@@ -49,8 +49,7 @@ void usage(unsigned int longhelp) {
         "  -h          Show short usage screen.\n"
         "  --help      Show usage with explanatory epilog.\n"
         "  --usage     Print resource usage of the measuring process before\n"
-        "              each command run; the default is to print only the\n"
-        "              initial baseline.\n",
+        "              each command run.\n",
         calledname,
         strcmp(calledname, "sample") == 0 ? "repeatedly" : "once");
 
@@ -63,11 +62,10 @@ void usage(unsigned int longhelp) {
     fprintf(stderr,
         "\nOutput format:\n"
         "  - Fields are space-separated, the first row is a header.\n"
-        "  - The measuring process's resource usage is output first, with all\n"
-        "    non-resource usage fields set to zero. If --usage was given, this\n"
-        "    measurement is taken and output before every command execution,\n"
-        "    not just the first; consequentially, --usage only makes sense for\n"
-        "    sample (since measure only runs the command once).\n"
+        "  - If --usage is specified then the measuring process's resource\n"
+        "    usage is taken and output before each command run; only the\n"
+        "    resource usages fields are meaningful on these lines, all other\n"
+        "    fields are zero or null.\n"
         "  - There-after the command is run (possibly many times) and the\n"
         "    fields described below are collected and output.\n"
 
@@ -93,7 +91,7 @@ int main(unsigned int argc, const char *argv[]) {
     else
         calledname = argv[0];
 
-    unsigned int printusage = 1;
+    unsigned int printusage = 0;
     struct program prog = program_init();
     prog.stdin  = NULL; // TODO: support "-";
     prog.stdout = "stdout_XXXXXX";
@@ -107,7 +105,7 @@ int main(unsigned int argc, const char *argv[]) {
             } else if (strcmp(argv[i], "--help") == 0) {
                 usage(1);
             } else if (strcmp(argv[i], "--usage") == 0) {
-                printusage = -1;
+                printusage = 1;
             } else if (strcmp(argv[i], "--") == 0) {
                 i++;
                 break;
@@ -148,8 +146,6 @@ int main(unsigned int argc, const char *argv[]) {
             print_result(&res);
             putchar('\n');
             fflush(stdout);
-            if (printusage == 1)
-                printusage = 0;
         }
 
         // run program
