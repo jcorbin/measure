@@ -24,14 +24,14 @@ int program_set_path(
     if (strchr(path, '/') != NULL) {
         if (realpath(path, buf) == NULL) {
             snprintf(errbuf->s, errbuf->n,
-                "failed to resolve %s: %s", path, strerror(errno));
+                "failed to resolve %s, %s", path, strerror(errno));
             return -1;
         }
 
         struct stat s;
         if (stat(buf, &s) != 0) {
             snprintf(errbuf->s, errbuf->n,
-                "failed to stat() %s: %S", buf, strerror(errno));
+                "failed to stat() %s, %S", buf, strerror(errno));
             return -1;
         }
 
@@ -43,7 +43,7 @@ int program_set_path(
 
         if (access(buf, X_OK) != 0) {
             snprintf(errbuf->s, errbuf->n,
-                "cannot access %s: %s", buf, strerror(errno));
+                "cannot access %s, %s", buf, strerror(errno));
             return -1;
         }
 
@@ -160,13 +160,13 @@ int _child_std_setup(
             }
             stdfds[i] = mkostemp(buf, stdflags[i] | O_CLOEXEC);
             if (fchmod(stdfds[i], S_IRUSR) < 0) {
-                snprintf(errbuf->s, errbuf->n, "fchmod() failed for %s: %s",
+                snprintf(errbuf->s, errbuf->n, "fchmod() failed for %s, %s",
                     stdpaths[i], strerror(errno));
                 free(buf);
                 return -1;
             }
             if (stdfds[i] < 0) {
-                snprintf(errbuf->s, errbuf->n, "mkstemp() failed for %s: %s",
+                snprintf(errbuf->s, errbuf->n, "mkstemp() failed for %s, %s",
                     stdpaths[i], strerror(errno));
                 free(buf);
                 return -1;
@@ -175,7 +175,7 @@ int _child_std_setup(
         } else {
             stdfds[i] = open(stdpaths[i], stdflags[i] | O_CLOEXEC);
             if (stdfds[i] < 0) {
-                snprintf(errbuf->s, errbuf->n, "failed to open %s: %s",
+                snprintf(errbuf->s, errbuf->n, "failed to open %s, %s",
                     stdpaths[i], strerror(errno));
                 return -1;
             }
@@ -191,7 +191,7 @@ int _child_std_setup(
 
         if (dup2(stdfds[i], i) < 0) {
             snprintf(errbuf->s, errbuf->n,
-                "%s dup2 failed: %s", stdname[i], strerror(errno));
+                "%s dup2 failed, %s", stdname[i], strerror(errno));
             return -1;
         }
 
@@ -215,7 +215,7 @@ void _child_run(struct program_result *res, int commfd) {
 
     if (clock_gettime(CLOCK_MONOTONIC_RAW, &t) != 0) {
         snprintf(errbuf.s, errbuf.n,
-            "clock_gettime(CLOCK_MONOTONIC_RAW) failed: %s",
+            "clock_gettime(CLOCK_MONOTONIC_RAW) failed, %s",
             strerror(errno));
         child_die(errbuf.s);
     }
@@ -224,7 +224,7 @@ void _child_run(struct program_result *res, int commfd) {
 
     if (execv(res->prog->path, (char * const*) res->prog->argv) < 0) {
         snprintf(errbuf.s, errbuf.n,
-            "execv() failed: %s", strerror(errno));
+            "execv() failed, %s", strerror(errno));
         child_die(errbuf.s);
     }
 }
@@ -237,7 +237,7 @@ int _program_run(
 
     if (pipe(commpipe) < 0) {
         snprintf(errbuf->s, errbuf->n,
-            "pipe() failed: %s", strerror(errno));
+            "pipe() failed, %s", strerror(errno));
         return -1;
     }
     fcntl(commpipe[0], F_SETFD, FD_CLOEXEC);
@@ -250,13 +250,13 @@ int _program_run(
         exit(0xfe);
     } else if (pid < 0) {
         snprintf(errbuf->s, errbuf->n,
-            "fork() failed: %s", strerror(errno));
+            "fork() failed, %s", strerror(errno));
         return -1;
     }
 
     if (close(commpipe[1]) < -1) {
         snprintf(errbuf->s, errbuf->n,
-            "failed to close child write pipe: %s", strerror(errno));
+            "failed to close child write pipe, %s", strerror(errno));
         return -1;
     }
 
@@ -267,13 +267,13 @@ int _program_run(
     pid_t r = wait4(pid, &res->status, 0, &res->rusage);
     if (r < 0) {
         snprintf(errbuf->s, errbuf->n,
-            "wait4 failed: %s", strerror(errno));
+            "wait4 failed, %s", strerror(errno));
         return -1;
     }
 
     if (clock_gettime(CLOCK_MONOTONIC_RAW, &res->end) != 0) {
         snprintf(errbuf->s, errbuf->n,
-            "clock_gettime(CLOCK_MONOTONIC_RAW) failed: %s",
+            "clock_gettime(CLOCK_MONOTONIC_RAW) failed, %s",
             strerror(errno));
         return -1;
     }
@@ -364,7 +364,7 @@ int _program_run(
 
     if (close(commpipe[0]) < -1) {
         snprintf(errbuf->s, errbuf->n,
-            "failed to close child read pipe: %s", strerror(errno));
+            "failed to close child read pipe, %s", strerror(errno));
         return -1;
     }
 
