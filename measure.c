@@ -72,7 +72,7 @@ int main(unsigned int argc, const char *argv[]) {
     }
 
     if (prog.path == NULL) {
-        fprintf(stderr, "missing program argument\n");
+        fprintf(stderr, "%s: missing command\n", calledname);
         exit(1);
     }
 
