@@ -45,8 +45,10 @@ void usage(void) {
     fprintf(stderr,
         "Usage: %s [options] [--] command [command arguments]\n"
         "\n"
-        "  -h, --help  Show this usage screen.\n",
-        calledname);
+        "  -h, --help  Show this usage screen.\n"
+        "  --usage     Print resource usage of the %s tool before\n"
+        "              each command run.\n",
+        calledname, calledname);
     exit(0);
 }
 
@@ -72,6 +74,8 @@ int main(unsigned int argc, const char *argv[]) {
             if (strcmp(argv[i], "-h") == 0 ||
                 strcmp(argv[i], "--help") == 0) {
                 usage();
+            } else if (strcmp(argv[i], "--usage") == 0) {
+                printusage = -1;
             } else if (strcmp(argv[i], "--") == 0) {
                 i++;
                 break;
@@ -112,7 +116,8 @@ int main(unsigned int argc, const char *argv[]) {
             print_result(&res);
             putchar('\n');
             fflush(stdout);
-            printusage = 0;
+            if (printusage == 1)
+                printusage = 0;
         }
 
         // run program
