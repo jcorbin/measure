@@ -19,12 +19,7 @@ What measure does is take a command, runs it, and collects:
 
 * high resolution (nanoseconds on Linux) wallclock runtime
 * returncode (in case your program is less than deterministic, you just might care)
-* resource usage, including
-
-** user and system CPU time
-** memory usage (maxrss)
-** page faults
-** and more! (see getrusage(2) for details)
+* resource usage, including: user and system CPU time; memory usage (maxrss); page faults; and more! (see getrusage(2) for details).
 
 * stashes the command's stdout and stderr into temporary files
 
