@@ -56,13 +56,14 @@ int main(unsigned int argc, const char *argv[]) {
     prog.stdout = "stdout_XXXXXX";
     prog.stderr = "stderr_XXXXXX";
 
-    if (argc < 2) {
-        fprintf(stderr, "missing program argument\n");
-        exit(1);
-    }
+    if (argc >= 2)
+        if (program_set_argv(&prog, argc-1, argv+1, &errbuf) != 0) {
+            fprintf(stderr, "invalid program: %s\n", errbuf.s);
+            exit(1);
+        }
 
-    if (program_set_argv(&prog, argc-1, argv+1, &errbuf) != 0) {
-        fprintf(stderr, "invalid program: %s\n", errbuf.s);
+    if (prog.path == NULL) {
+        fprintf(stderr, "missing program argument\n");
         exit(1);
     }
 
