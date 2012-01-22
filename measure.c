@@ -68,6 +68,9 @@ int main(unsigned int argc, const char *argv[]) {
             if (strcmp(argv[i], "-h") == 0 ||
                 strcmp(argv[i], "--help") == 0) {
                 usage();
+            } else if (strcmp(argv[i], "--") == 0) {
+                i++;
+                break;
             } else {
                 fprintf(stderr, "%s: unrecognized option '%s'\n",
                     calledname, argv[i]);
