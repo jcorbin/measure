@@ -43,7 +43,9 @@ static const char *calledname = NULL;
 
 void usage(void) {
     fprintf(stderr,
-        "Usage: %s [options] [--] command [command arguments]\n",
+        "Usage: %s [options] [--] command [command arguments]\n"
+        "\n"
+        "  -h, --help  Show this usage screen.\n",
         calledname);
     exit(0);
 }
