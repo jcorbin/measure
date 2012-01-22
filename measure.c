@@ -41,25 +41,34 @@ void print_result(struct program_result *res) {
 
 static const char *calledname = NULL;
 
-void usage(void) {
+void usage(unsigned int longhelp) {
     fprintf(stderr,
         "Usage: %s [options] [--] command [command arguments]\n"
         "Run a command %s and collect various measurements.\n"
         "\n"
-        "  -h, --help  Show this usage screen.\n"
+        "  -h          Show short usage screen.\n"
+        "  --help      Show usage with explanatory epilog.\n"
         "  --usage     Print resource usage of the measuring process before\n"
         "              each command run; the default is to print only the\n"
-        "              initial baseline.\n"
-        "\n"
+        "              initial baseline.\n",
+        calledname,
+        strcmp(calledname, "sample") == 0 ? "repeatedly" : "once");
+
+    if (! longhelp) {
+        fprintf(stderr,
+            "\nTry '%s --help' for more information.\n", calledname);
+        exit(0);
+    }
+
+    fprintf(stderr, "\n"
         "A header row is output first, followed by a baseline of the measuring\n"
         "process's resource usage. If --usage is specified, this usage is taken\n"
         "and output before every command result row.\n\n"
         "The output fields are:\n"
         "- start and end time from the monotonic clock (see clock_gettime(3))\n"
         "- process exit status and resource usage (see wait4(2))\n"
-        "- temporary files containing stdout and stderr output\n",
-        calledname,
-        strcmp(calledname, "sample") == 0 ? "repeatedly" : "once");
+        "- temporary files containing stdout and stderr output\n");
+
     exit(0);
 }
 
@@ -82,9 +91,10 @@ int main(unsigned int argc, const char *argv[]) {
     unsigned int i;
     for (i=1; i<argc; i++)
         if (argv[i][0] == '-') {
-            if (strcmp(argv[i], "-h") == 0 ||
-                strcmp(argv[i], "--help") == 0) {
-                usage();
+            if (strcmp(argv[i], "-h") == 0) {
+                usage(0);
+            } else if (strcmp(argv[i], "--help") == 0) {
+                usage(1);
             } else if (strcmp(argv[i], "--usage") == 0) {
                 printusage = -1;
             } else if (strcmp(argv[i], "--") == 0) {
