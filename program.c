@@ -170,8 +170,9 @@ int _child_std_setup(
                  strcmp(stdpaths[i], nullfile) == 0)
             stdpaths[i] = nullfile;
 
+        char *buf = NULL;
         if (stdflags[i] & O_WRONLY && stdpaths[i] != nullfile) {
-            char *buf = strdup(stdpaths[i]);
+            buf = strdup(stdpaths[i]);
             if (buf == NULL) {
                 strncpy(errbuf->s, "strdup() failed", errbuf->n);
                 return -1;
@@ -202,10 +203,8 @@ int _child_std_setup(
         if (child_comm_send_filepath(commfd, stdname[i], stdpaths[i]) < 0)
             exit(CHILD_EXIT_COMMERROR);
 
-        if (stdpaths[i] != NULL &&
-            stdpaths[i] != nullfile &&
-            stdpaths[i] != progpaths[i])
-            free((void *) stdpaths[i]);
+        if (buf != NULL)
+            free(buf);
 
         if (dup2(stdfds[i], i) < 0) {
             snprintf(errbuf->s, errbuf->n,
