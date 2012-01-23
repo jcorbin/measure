@@ -211,8 +211,6 @@ int _child_std_setup(
                 "%s dup2 failed, %s", stdname[i], strerror(errno));
             return -1;
         }
-
-        stdpaths[i] = NULL;
     }
 
     return 0;
