@@ -160,19 +160,18 @@ int _child_std_setup(
         res->prog->stdin,
         res->prog->stdout,
         res->prog->stderr};
-    const char **stdpaths = progpaths;
 
     for (int i=0; i<3; i++) {
-        if (stdpaths[i] == NULL)
-            stdpaths[i] = nullfile;
-        else if (stdpaths[i] != nullfile &&
-                 strcmp(stdpaths[i], nullfile) == 0)
-            stdpaths[i] = nullfile;
+        if (progpaths[i] == NULL)
+            progpaths[i] = nullfile;
+        else if (progpaths[i] != nullfile &&
+                 strcmp(progpaths[i], nullfile) == 0)
+            progpaths[i] = nullfile;
 
         int fd = -1;
         char *buf = NULL;
-        if (stdflags[i] & O_WRONLY && stdpaths[i] != nullfile) {
-            buf = strdup(stdpaths[i]);
+        if (stdflags[i] & O_WRONLY && progpaths[i] != nullfile) {
+            buf = strdup(progpaths[i]);
             if (buf == NULL) {
                 strncpy(errbuf->s, "strdup() failed", errbuf->n);
                 return -1;
@@ -180,7 +179,7 @@ int _child_std_setup(
             fd = mkostemp(buf, stdflags[i] | O_CLOEXEC);
             if (fd < 0) {
                 snprintf(errbuf->s, errbuf->n, "mkstemp() failed for %s, %s",
-                    stdpaths[i], strerror(errno));
+                    progpaths[i], strerror(errno));
                 free(buf);
                 return -1;
             }
@@ -190,17 +189,17 @@ int _child_std_setup(
                 free(buf);
                 return -1;
             }
-            stdpaths[i] = buf;
+            progpaths[i] = buf;
         } else {
-            fd = open(stdpaths[i], stdflags[i] | O_CLOEXEC);
+            fd = open(progpaths[i], stdflags[i] | O_CLOEXEC);
             if (fd < 0) {
                 snprintf(errbuf->s, errbuf->n, "failed to open %s, %s",
-                    stdpaths[i], strerror(errno));
+                    progpaths[i], strerror(errno));
                 return -1;
             }
         }
 
-        if (child_comm_send_filepath(commfd, stdname[i], stdpaths[i]) < 0)
+        if (child_comm_send_filepath(commfd, stdname[i], progpaths[i]) < 0)
             exit(CHILD_EXIT_COMMERROR);
 
         if (buf != NULL)
