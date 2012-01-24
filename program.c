@@ -156,7 +156,6 @@ int _child_std_setup(
         int commfd,
         struct error_buffer *errbuf) {
 
-    int stdfds[3];
     const char *progpaths[3] = {
         res->prog->stdin,
         res->prog->stdout,
@@ -170,6 +169,7 @@ int _child_std_setup(
                  strcmp(stdpaths[i], nullfile) == 0)
             stdpaths[i] = nullfile;
 
+        int fd = -1;
         char *buf = NULL;
         if (stdflags[i] & O_WRONLY && stdpaths[i] != nullfile) {
             buf = strdup(stdpaths[i]);
@@ -177,14 +177,14 @@ int _child_std_setup(
                 strncpy(errbuf->s, "strdup() failed", errbuf->n);
                 return -1;
             }
-            stdfds[i] = mkostemp(buf, stdflags[i] | O_CLOEXEC);
-            if (fchmod(stdfds[i], S_IRUSR) < 0) {
+            fd = mkostemp(buf, stdflags[i] | O_CLOEXEC);
+            if (fchmod(fd, S_IRUSR) < 0) {
                 snprintf(errbuf->s, errbuf->n, "fchmod() failed for %s, %s",
                     stdpaths[i], strerror(errno));
                 free(buf);
                 return -1;
             }
-            if (stdfds[i] < 0) {
+            if (fd < 0) {
                 snprintf(errbuf->s, errbuf->n, "mkstemp() failed for %s, %s",
                     stdpaths[i], strerror(errno));
                 free(buf);
@@ -192,8 +192,8 @@ int _child_std_setup(
             }
             stdpaths[i] = buf;
         } else {
-            stdfds[i] = open(stdpaths[i], stdflags[i] | O_CLOEXEC);
-            if (stdfds[i] < 0) {
+            fd = open(stdpaths[i], stdflags[i] | O_CLOEXEC);
+            if (fd < 0) {
                 snprintf(errbuf->s, errbuf->n, "failed to open %s, %s",
                     stdpaths[i], strerror(errno));
                 return -1;
@@ -206,7 +206,7 @@ int _child_std_setup(
         if (buf != NULL)
             free(buf);
 
-        if (dup2(stdfds[i], i) < 0) {
+        if (dup2(fd, i) < 0) {
             snprintf(errbuf->s, errbuf->n,
                 "%s dup2 failed, %s", stdname[i], strerror(errno));
             return -1;
