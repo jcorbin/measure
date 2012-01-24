@@ -178,14 +178,14 @@ int _child_std_setup(
                 return -1;
             }
             fd = mkostemp(buf, stdflags[i] | O_CLOEXEC);
-            if (fchmod(fd, S_IRUSR) < 0) {
-                snprintf(errbuf->s, errbuf->n, "fchmod() failed for %s, %s",
+            if (fd < 0) {
+                snprintf(errbuf->s, errbuf->n, "mkstemp() failed for %s, %s",
                     stdpaths[i], strerror(errno));
                 free(buf);
                 return -1;
             }
-            if (fd < 0) {
-                snprintf(errbuf->s, errbuf->n, "mkstemp() failed for %s, %s",
+            if (fchmod(fd, S_IRUSR) < 0) {
+                snprintf(errbuf->s, errbuf->n, "fchmod() failed for %s, %s",
                     stdpaths[i], strerror(errno));
                 free(buf);
                 return -1;
