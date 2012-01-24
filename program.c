@@ -186,7 +186,7 @@ int _child_std_setup(
             }
             if (fchmod(fd, S_IRUSR) < 0) {
                 snprintf(errbuf->s, errbuf->n, "fchmod() failed for %s, %s",
-                    stdpaths[i], strerror(errno));
+                    buf, strerror(errno));
                 free(buf);
                 return -1;
             }
