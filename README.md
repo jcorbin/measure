@@ -13,7 +13,7 @@ There's rumors of some old "timex" thing, but well that seems to have
 fallen out of remembering for the most part.
 
 Right so there's this (seemingly) little-used wait4(2) function which
-returns _resource_usage_ of a child process.
+returns _resource usage_ of a child process.
 
 What measure does is take a command, runs it, and collects:
 
