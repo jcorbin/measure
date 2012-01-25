@@ -98,6 +98,8 @@ void usage(unsigned int longhelp) {
     exit(0);
 }
 
+static struct program_result res = program_result_init();
+
 int main(unsigned int argc, const char *argv[]) {
     char _errbuf[ERRBUF_SIZE];
     struct error_buffer errbuf = {ERRBUF_SIZE-1, _errbuf};
@@ -148,8 +150,6 @@ int main(unsigned int argc, const char *argv[]) {
          "nswap inblock oublock msgsnd msgrcv nsignals nvcsw nivcsw "
          "stdout stderr");
     fflush(stdout);
-
-    struct program_result res = program_result_init();
 
     // TODO: handle SIGPIPE and unlink output files which weren't consumed
 
