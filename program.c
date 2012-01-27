@@ -258,14 +258,14 @@ int _program_run(
     fcntl(commpipe[1], F_SETFD, FD_CLOEXEC);
 
     pid_t pid = fork();
-    if (pid == 0) {
-        _child_run(res, commpipe[1]);
-        // shouldn't happen, _child_run execv()s or exit()s
-        exit(0xfe);
-    } else if (pid < 0) {
+    if (pid < 0) {
         snprintf(errbuf->s, errbuf->n,
             "fork() failed, %s", strerror(errno));
         return -1;
+    } else if (pid == 0) {
+        _child_run(res, commpipe[1]);
+        // shouldn't happen, _child_run execv()s or exit()s
+        exit(0xfe);
     }
 
     if (close(commpipe[1]) < -1) {
