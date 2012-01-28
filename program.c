@@ -151,7 +151,7 @@ void program_result_free(struct program_result *res) {
 static const char *stdname[3] = {"stdin", "stdout", "stderr"};
 static const int stdflags[3] = {O_RDONLY, O_WRONLY, O_WRONLY};
 
-int _child_std_setup(
+int child_std_setup(
         struct program_result *res,
         int commfd,
         struct error_buffer *errbuf) {
@@ -215,10 +215,10 @@ int _child_std_setup(
     return 0;
 }
 
-void _child_run(struct program_result *res, int commfd) {
+void child_run(struct program_result *res, int commfd) {
     struct error_buffer errbuf;
 
-    if (_child_std_setup(res, commfd, &errbuf) < 0)
+    if (child_std_setup(res, commfd, &errbuf) < 0)
         child_die(errbuf.s);
 
     struct timespec t;
@@ -383,8 +383,8 @@ struct program_result *program_run(
             "fork() failed, %s", strerror(errno));
         return NULL;
     case 0:
-        _child_run(res, commpipe[1]);
-        // shouldn't happen, _child_run execv()s or exit()s
+        child_run(res, commpipe[1]);
+        // shouldn't happen, child_run execv()s or exit()s
         exit(0xfe);
     default:
         if (close(commpipe[1]) < -1) {
