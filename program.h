@@ -34,6 +34,7 @@ struct program {
 
 struct program_result {
     const struct program *prog;
+    pid_t pid;
     struct timespec start;
     struct timespec end;
     int status;
@@ -46,7 +47,7 @@ struct program_result {
 #define program_init() {NULL, NULL, NULL, NULL, NULL}
 
 #define program_result_init() {\
-    NULL, {0, 0}, {0, 0}, 0, \
+    NULL, 0, {0, 0}, {0, 0}, 0, \
     {{0, 0}, {0, 0}, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, \
     NULL, NULL, NULL}
 

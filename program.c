@@ -257,8 +257,7 @@ int _program_run(
     fcntl(commpipe[0], F_SETFD, FD_CLOEXEC);
     fcntl(commpipe[1], F_SETFD, FD_CLOEXEC);
 
-    pid_t pid;
-    switch (pid = fork()) {
+    switch (res->pid = fork()) {
     case -1:
         snprintf(errbuf->s, errbuf->n,
             "fork() failed, %s", strerror(errno));
@@ -279,7 +278,7 @@ int _program_run(
     //       * pause(3P)
     //       * sigaction(3P)
 
-    pid_t r = wait4(pid, &res->status, 0, &res->rusage);
+    pid_t r = wait4(res->pid, &res->status, 0, &res->rusage);
     if (r < 0) {
         snprintf(errbuf->s, errbuf->n,
             "wait4 failed, %s", strerror(errno));
