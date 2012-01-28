@@ -243,28 +243,10 @@ void child_run(struct program_result *res, int commfd) {
     }
 }
 
-int handle_child(
+int read_from_child(
     int commfd,
     struct program_result *res,
     struct error_buffer *errbuf) {
-
-    // TODO: try using a SIGCHLD handler rather than blocking wait
-    //       * pause(3P)
-    //       * sigaction(3P)
-
-    pid_t pid = wait4(res->pid, &res->status, 0, &res->rusage);
-    if (pid < 0) {
-        snprintf(errbuf->s, errbuf->n,
-            "wait4 failed, %s", strerror(errno));
-        return -1;
-    }
-
-    if (clock_gettime(CLOCK_MONOTONIC_RAW, &res->end) != 0) {
-        snprintf(errbuf->s, errbuf->n,
-            "clock_gettime(CLOCK_MONOTONIC_RAW) failed, %s",
-            strerror(errno));
-        return -1;
-    }
 
     struct child_comm comm = {0, 0, NULL};
     while (child_comm_read(commfd, &comm) == 0) {
@@ -329,6 +311,41 @@ int handle_child(
         comm.data = NULL;
     }
 
+    if (close(commfd) < -1) {
+        snprintf(errbuf->s, errbuf->n,
+            "failed to close child read pipe, %s", strerror(errno));
+        return -1;
+    }
+
+    return 0;
+}
+
+int handle_child(
+    int commfd,
+    struct program_result *res,
+    struct error_buffer *errbuf) {
+
+    // TODO: try using a SIGCHLD handler rather than blocking wait
+    //       * pause(3P)
+    //       * sigaction(3P)
+
+    pid_t pid = wait4(res->pid, &res->status, 0, &res->rusage);
+    if (pid < 0) {
+        snprintf(errbuf->s, errbuf->n,
+            "wait4 failed, %s", strerror(errno));
+        return -1;
+    }
+
+    if (clock_gettime(CLOCK_MONOTONIC_RAW, &res->end) != 0) {
+        snprintf(errbuf->s, errbuf->n,
+            "clock_gettime(CLOCK_MONOTONIC_RAW) failed, %s",
+            strerror(errno));
+        return -1;
+    }
+
+    if (read_from_child(commfd, res, errbuf) < 0)
+        return -1;
+
     if (res->start.tv_sec == 0 && res->start.tv_nsec == 0) {
         if (WIFEXITED(res->status)) {
             unsigned char exitval = WEXITSTATUS(res->status);
@@ -345,12 +362,6 @@ int handle_child(
             snprintf(errbuf->s, errbuf->n,
                 "unknown child failure, exit status %x", res->status);
         }
-        return -1;
-    }
-
-    if (close(commfd) < -1) {
-        snprintf(errbuf->s, errbuf->n,
-            "failed to close child read pipe, %s", strerror(errno));
         return -1;
     }
 
