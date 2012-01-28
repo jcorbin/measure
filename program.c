@@ -278,8 +278,8 @@ int _program_run(
     //       * pause(3P)
     //       * sigaction(3P)
 
-    pid_t r = wait4(res->pid, &res->status, 0, &res->rusage);
-    if (r < 0) {
+    pid_t pid = wait4(res->pid, &res->status, 0, &res->rusage);
+    if (pid < 0) {
         snprintf(errbuf->s, errbuf->n,
             "wait4 failed, %s", strerror(errno));
         return -1;
