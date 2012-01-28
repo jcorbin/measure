@@ -243,6 +243,11 @@ void _child_run(struct program_result *res, int commfd) {
     }
 }
 
+int handle_child(
+    int commfd,
+    struct program_result *res,
+    struct error_buffer *errbuf);
+
 int _program_run(
     struct error_buffer *errbuf,
     struct program_result *res) {
@@ -274,6 +279,14 @@ int _program_run(
         return -1;
     }
 
+    return handle_child(commpipe[0], res, errbuf);
+}
+
+int handle_child(
+    int commfd,
+    struct program_result *res,
+    struct error_buffer *errbuf) {
+
     // TODO: try using a SIGCHLD handler rather than blocking wait
     //       * pause(3P)
     //       * sigaction(3P)
@@ -294,7 +307,7 @@ int _program_run(
 
     unsigned char got_start = 0;
     struct child_comm comm = {0, 0, NULL};
-    while (child_comm_read(commpipe[0], &comm) == 0) {
+    while (child_comm_read(commfd, &comm) == 0) {
         if (comm.id == CHILD_COMM_ID_MESS) {
             *((char *) comm.data + comm.len - 1) = '\0';
             strncpy(errbuf->s, "child failed: ", errbuf->n);
@@ -376,7 +389,7 @@ int _program_run(
         return -1;
     }
 
-    if (close(commpipe[0]) < -1) {
+    if (close(commfd) < -1) {
         snprintf(errbuf->s, errbuf->n,
             "failed to close child read pipe, %s", strerror(errno));
         return -1;
