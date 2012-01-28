@@ -266,7 +266,6 @@ int handle_child(
         return -1;
     }
 
-    unsigned char got_start = 0;
     struct child_comm comm = {0, 0, NULL};
     while (child_comm_read(commfd, &comm) == 0) {
         if (comm.id == CHILD_COMM_ID_MESS) {
@@ -318,7 +317,6 @@ int handle_child(
                 return -1;
             }
             memcpy(&res->start, comm.data, sizeof(struct timespec));
-            got_start = 1;
         } else {
             snprintf(errbuf->s, errbuf->n,
                 "received unknown message id %02x from child", comm.id);
@@ -331,7 +329,7 @@ int handle_child(
         comm.data = NULL;
     }
 
-    if (! got_start) {
+    if (res->start.tv_sec == 0 && res->start.tv_nsec == 0) {
         if (WIFEXITED(res->status)) {
             unsigned char exitval = WEXITSTATUS(res->status);
             if (exitval == CHILD_EXIT_COMMERROR)
