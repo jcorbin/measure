@@ -246,45 +246,6 @@ void _child_run(struct program_result *res, int commfd) {
 int handle_child(
     int commfd,
     struct program_result *res,
-    struct error_buffer *errbuf);
-
-int _program_run(
-    struct error_buffer *errbuf,
-    struct program_result *res) {
-
-    int commpipe[2];
-
-    if (pipe(commpipe) < 0) {
-        snprintf(errbuf->s, errbuf->n,
-            "pipe() failed, %s", strerror(errno));
-        return -1;
-    }
-    fcntl(commpipe[0], F_SETFD, FD_CLOEXEC);
-    fcntl(commpipe[1], F_SETFD, FD_CLOEXEC);
-
-    switch (res->pid = fork()) {
-    case -1:
-        snprintf(errbuf->s, errbuf->n,
-            "fork() failed, %s", strerror(errno));
-        return -1;
-    case 0:
-        _child_run(res, commpipe[1]);
-        // shouldn't happen, _child_run execv()s or exit()s
-        exit(0xfe);
-    default:
-        if (close(commpipe[1]) < -1) {
-            snprintf(errbuf->s, errbuf->n,
-                "failed to close child write pipe, %s", strerror(errno));
-            return -1;
-        }
-
-        return handle_child(commpipe[0], res, errbuf);
-    }
-}
-
-int handle_child(
-    int commfd,
-    struct program_result *res,
     struct error_buffer *errbuf) {
 
     // TODO: try using a SIGCHLD handler rather than blocking wait
@@ -406,8 +367,35 @@ struct program_result *program_run(
     memset(res, 0, sizeof(struct program_result));
     res->prog = prog;
 
-    if (_program_run(errbuf, res) < 0)
-        res = NULL;
+    int commpipe[2];
 
-    return res;
+    if (pipe(commpipe) < 0) {
+        snprintf(errbuf->s, errbuf->n,
+            "pipe() failed, %s", strerror(errno));
+        return NULL;
+    }
+    fcntl(commpipe[0], F_SETFD, FD_CLOEXEC);
+    fcntl(commpipe[1], F_SETFD, FD_CLOEXEC);
+
+    switch (res->pid = fork()) {
+    case -1:
+        snprintf(errbuf->s, errbuf->n,
+            "fork() failed, %s", strerror(errno));
+        return NULL;
+    case 0:
+        _child_run(res, commpipe[1]);
+        // shouldn't happen, _child_run execv()s or exit()s
+        exit(0xfe);
+    default:
+        if (close(commpipe[1]) < -1) {
+            snprintf(errbuf->s, errbuf->n,
+                "failed to close child write pipe, %s", strerror(errno));
+            return NULL;
+        }
+
+        if (handle_child(commpipe[0], res, errbuf) < 0)
+            return NULL;
+        else
+            return res;
+    }
 }
