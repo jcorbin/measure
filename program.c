@@ -271,15 +271,15 @@ int _program_run(
         _child_run(res, commpipe[1]);
         // shouldn't happen, _child_run execv()s or exit()s
         exit(0xfe);
-    }
+    default:
+        if (close(commpipe[1]) < -1) {
+            snprintf(errbuf->s, errbuf->n,
+                "failed to close child write pipe, %s", strerror(errno));
+            return -1;
+        }
 
-    if (close(commpipe[1]) < -1) {
-        snprintf(errbuf->s, errbuf->n,
-            "failed to close child write pipe, %s", strerror(errno));
-        return -1;
+        return handle_child(commpipe[0], res, errbuf);
     }
-
-    return handle_child(commpipe[0], res, errbuf);
 }
 
 int handle_child(
