@@ -27,7 +27,6 @@
 
 // TODO:
 // * variable arguments per execution for, e.g., output filenames as arguments
-// * move to a different output format rather than introducing escaping for stdout/err
 
 void print_result(struct program_result *res) {
     printf("%us,%uns", res->start.tv_sec, res->start.tv_nsec);
