@@ -24,6 +24,7 @@
 
 #include "error.h"
 #include "program.h"
+#include "sighandler.h"
 
 // TODO:
 // * variable arguments per execution for, e.g., output filenames as arguments
@@ -145,6 +146,8 @@ int main(unsigned int argc, const char *argv[]) {
         fprintf(stderr, "%s: missing command\n", calledname);
         exit(1);
     }
+
+    setup_signal_handlers();
 
     puts("start end utime stime maxrss ixrss idrss isrss minflt majflt "
          "nswap inblock oublock msgsnd msgrcv nsignals nvcsw nivcsw "
