@@ -335,6 +335,7 @@ int handle_child(
             "wait4 failed, %s", strerror(errno));
         return -1;
     }
+    res->pid = 0;
 
     if (clock_gettime(CLOCK_MONOTONIC_RAW, &res->end) != 0) {
         snprintf(errbuf->s, errbuf->n,
