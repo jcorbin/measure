@@ -16,9 +16,13 @@
  * along with Measure.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <errno.h>
 #include <signal.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
+#include <unistd.h>
+#include <sys/wait.h>
 
 static struct sigaction old_sigterm, old_sigint;
 
@@ -57,4 +61,53 @@ void exit_cleanly_from_signal(int signo) {
 
     // Cleanup happens via atexit(3)
     exit(0);
+}
+
+// used by polite_kill to eat SIGALRMs
+void sig_nop(int signo) {
+}
+
+// Timeout for waitpid() before sending another signal
+#define POLITE_KILL_WAIT 5
+
+// Signals to send, TERM twice, then KILL
+static int polite_kill_signals[] = {
+    SIGTERM, SIGTERM, SIGKILL};
+
+int polite_kill(pid_t pid) {
+    struct sigaction ign_alrm, old_alrm;
+    memset(&ign_alrm, 0, sizeof(struct sigaction));
+    ign_alrm.sa_handler = sig_nop;
+    sigaction(SIGALRM, &ign_alrm, &old_alrm);
+
+    int ret = 0;
+
+    for (int i=0; i < sizeof(polite_kill_signals) / sizeof(int); i++) {
+        if (kill(pid, polite_kill_signals[i]) < 0) {
+            perror("kill failed");
+            break;
+        }
+        alarm(POLITE_KILL_WAIT);
+        int status;
+        pid_t got = waitpid(pid, &status, 0);
+
+        if (got == pid) // success
+            break;
+        else if (got < 0)
+            if (errno == EINTR)  // waitpid got interrupted by SIGALRM
+                continue;
+            else
+                perror("waitpid failed");
+        else
+            fprintf(stderr,
+                "unexpected return from waitpid(%d): %d\n", pid, got);
+
+        // Fell through from an error
+        ret = -1;
+        break;
+    }
+
+    sigaction(SIGALRM, &old_alrm, NULL);
+
+    return ret;
 }

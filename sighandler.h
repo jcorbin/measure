@@ -21,4 +21,6 @@
 
 void setup_signal_handlers(void);
 
+void polite_kill(pid_t pid);
+
 #endif // _MEASURE_SIGHANDLER_H_
