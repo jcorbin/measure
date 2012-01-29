@@ -101,6 +101,23 @@ void usage(unsigned int longhelp) {
 
 static struct program_result res = program_result_init();
 
+// Flag controlling whether res has been shipped down stdout, or not;
+// if not then we'll cleanup in response to a SIG{TERM,INT,HUP,PIPE} by
+// unlinking the std{out,err} files we created and killing the child
+// process.
+static int result_sent;
+
+void cleanup_current_result(void) {
+    if (result_sent)
+        return;
+    if (res.stdout != NULL)
+        unlink(res.stdout);
+    if (res.stderr != NULL)
+        unlink(res.stderr);
+    if (res.pid != 0)
+        polite_kill(res.pid);
+}
+
 int main(unsigned int argc, const char *argv[]) {
     char _errbuf[ERRBUF_SIZE];
     struct error_buffer errbuf = {ERRBUF_SIZE-1, _errbuf};
@@ -147,14 +164,14 @@ int main(unsigned int argc, const char *argv[]) {
         exit(1);
     }
 
+    atexit(cleanup_current_result);
+
     setup_signal_handlers();
 
     puts("start end utime stime maxrss ixrss idrss isrss minflt majflt "
          "nswap inblock oublock msgsnd msgrcv nsignals nvcsw nivcsw "
          "stdout stderr");
     fflush(stdout);
-
-    // TODO: handle SIGPIPE and unlink output files which weren't consumed
 
     unsigned int issample = strcmp(calledname, "sample") == 0;
 
@@ -168,6 +185,7 @@ int main(unsigned int argc, const char *argv[]) {
             fflush(stdout);
         }
 
+        result_sent = 0;
         // run program
         if (program_run(&prog, &res, &errbuf) == NULL) {
             fputs(errbuf.s, stderr);
@@ -176,6 +194,7 @@ int main(unsigned int argc, const char *argv[]) {
         }
         print_result(&res);
         putchar('\n');
+        result_sent = 1;
         fflush(stdout);
         program_result_free(&res);
 
