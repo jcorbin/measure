@@ -194,8 +194,8 @@ int main(unsigned int argc, const char *argv[]) {
         }
         print_result(&res);
         putchar('\n');
-        result_sent = 1;
         fflush(stdout);
+        result_sent = 1;
         program_result_free(&res);
 
         if (! issample)
