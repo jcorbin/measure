@@ -150,6 +150,13 @@ int child_std_setup(
     int commfd,
     struct error_buffer *errbuf) {
 
+    if (res->prog->stdinfd > 0)
+        if (dup2(res->prog->stdinfd, 0) < 0) {
+            snprintf(errbuf->s, errbuf->n,
+                "stdin dup2 failed, %s", strerror(errno));
+            return -1;
+        }
+
     const char *progpaths[] = {
         res->prog->stdout,
         res->prog->stderr};
