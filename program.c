@@ -359,6 +359,12 @@ struct program_result *program_run(
     memset(res, 0, sizeof(struct program_result));
     res->prog = prog;
 
+    if (lseek(prog->stdinfd, 0, SEEK_SET) < 0) {
+        snprintf(errbuf->s, errbuf->n,
+            "seek failed on child stdinfd, %s", strerror(errno));
+        return NULL;
+    }
+
     int commpipe[2];
 
     if (pipe(commpipe) < 0) {
