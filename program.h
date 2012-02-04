@@ -39,7 +39,6 @@ struct program_result {
     struct timespec end;
     int status;
     struct rusage rusage;
-    const char *stdin;
     const char *stdout;
     const char *stderr;
 };
@@ -49,7 +48,7 @@ struct program_result {
 #define program_result_init() {\
     NULL, 0, {0, 0}, {0, 0}, 0, \
     {{0, 0}, {0, 0}, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, \
-    NULL, NULL, NULL}
+    NULL, NULL}
 
 int program_set_path(
     struct program *prog,
