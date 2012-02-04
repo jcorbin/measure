@@ -30,6 +30,7 @@ struct program {
     const char *stdin;
     const char *stdout;
     const char *stderr;
+    int stdinfd;
 };
 
 struct program_result {
@@ -43,7 +44,7 @@ struct program_result {
     const char *stderr;
 };
 
-#define program_init() {NULL, NULL, NULL, NULL, NULL}
+#define program_init() {NULL, NULL, NULL, NULL, NULL, 0}
 
 #define program_result_init() {\
     NULL, 0, {0, 0}, {0, 0}, 0, \
