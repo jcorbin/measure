@@ -261,9 +261,7 @@ int read_from_child(
             path++;
 
             const char **dst = NULL;
-            if (strcmp(name, "stdin") == 0)
-                dst = &res->stdin;
-            else if (strcmp(name, "stdout") == 0)
+            if (strcmp(name, "stdout") == 0)
                 dst = &res->stdout;
             else if (strcmp(name, "stderr") == 0)
                 dst = &res->stderr;
