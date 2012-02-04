@@ -156,7 +156,7 @@ int child_std_setup(
         int commfd,
         struct error_buffer *errbuf) {
 
-    const char *progpaths[3] = {
+    const char *progpaths[] = {
         res->prog->stdin,
         res->prog->stdout,
         res->prog->stderr};
