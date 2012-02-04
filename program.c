@@ -148,8 +148,8 @@ void program_result_free(struct program_result *res) {
     res->stderr = NULL;
 }
 
-static const char *stdname[3] = {"stdin", "stdout", "stderr"};
-static const int stdflags[3] = {O_RDONLY, O_WRONLY, O_WRONLY};
+static const char *stdname[2] = {"stdout", "stderr"};
+static const int stdflags[2] = {O_WRONLY, O_WRONLY};
 
 int child_std_setup(
         struct program_result *res,
@@ -157,11 +157,10 @@ int child_std_setup(
         struct error_buffer *errbuf) {
 
     const char *progpaths[] = {
-        res->prog->stdin,
         res->prog->stdout,
         res->prog->stderr};
 
-    for (int i=0; i<3; i++) {
+    for (int i=0; i<2; i++) {
         if (progpaths[i] == NULL)
             progpaths[i] = nullfile;
         else if (progpaths[i] != nullfile &&
@@ -170,34 +169,25 @@ int child_std_setup(
 
         int fd = -1;
         char *buf = NULL;
-        if (stdflags[i] & O_WRONLY && progpaths[i] != nullfile) {
-            buf = strdup(progpaths[i]);
-            if (buf == NULL) {
-                strncpy(errbuf->s, "strdup() failed", errbuf->n);
-                return -1;
-            }
-            fd = mkostemp(buf, stdflags[i] | O_CLOEXEC);
-            if (fd < 0) {
-                snprintf(errbuf->s, errbuf->n, "mkstemp() failed for %s, %s",
-                    progpaths[i], strerror(errno));
-                free(buf);
-                return -1;
-            }
-            if (fchmod(fd, S_IRUSR) < 0) {
-                snprintf(errbuf->s, errbuf->n, "fchmod() failed for %s, %s",
-                    buf, strerror(errno));
-                free(buf);
-                return -1;
-            }
-            progpaths[i] = buf;
-        } else {
-            fd = open(progpaths[i], stdflags[i] | O_CLOEXEC);
-            if (fd < 0) {
-                snprintf(errbuf->s, errbuf->n, "failed to open %s, %s",
-                    progpaths[i], strerror(errno));
-                return -1;
-            }
+        buf = strdup(progpaths[i]);
+        if (buf == NULL) {
+            strncpy(errbuf->s, "strdup() failed", errbuf->n);
+            return -1;
         }
+        fd = mkostemp(buf, stdflags[i] | O_CLOEXEC);
+        if (fd < 0) {
+            snprintf(errbuf->s, errbuf->n, "mkstemp() failed for %s, %s",
+                progpaths[i], strerror(errno));
+            free(buf);
+            return -1;
+        }
+        if (fchmod(fd, S_IRUSR) < 0) {
+            snprintf(errbuf->s, errbuf->n, "fchmod() failed for %s, %s",
+                buf, strerror(errno));
+            free(buf);
+            return -1;
+        }
+        progpaths[i] = buf;
 
         if (child_comm_send_filepath(commfd, stdname[i], progpaths[i]) < 0)
             exit(CHILD_EXIT_COMMERROR);
@@ -205,7 +195,7 @@ int child_std_setup(
         if (buf != NULL)
             free(buf);
 
-        if (dup2(fd, i) < 0) {
+        if (dup2(fd, i+1) < 0) {
             snprintf(errbuf->s, errbuf->n,
                 "%s dup2 failed, %s", stdname[i], strerror(errno));
             return -1;
