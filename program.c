@@ -146,9 +146,9 @@ static const char *stdname[2] = {"stdout", "stderr"};
 static const int stdflags[2] = {O_WRONLY, O_WRONLY};
 
 int child_std_setup(
-        struct program_result *res,
-        int commfd,
-        struct error_buffer *errbuf) {
+    struct program_result *res,
+    int commfd,
+    struct error_buffer *errbuf) {
 
     const char *progpaths[] = {
         res->prog->stdout,
