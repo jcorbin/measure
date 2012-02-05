@@ -143,7 +143,6 @@ void program_result_free(struct program_result *res) {
 }
 
 static const char *stdname[2] = {"stdout", "stderr"};
-static const int stdflags[2] = {O_WRONLY, O_WRONLY};
 
 int child_std_setup(
     struct program_result *res,
@@ -175,7 +174,7 @@ int child_std_setup(
             strncpy(errbuf->s, "strdup() failed", errbuf->n);
             return -1;
         }
-        fd = mkostemp(buf, stdflags[i] | O_CLOEXEC);
+        fd = mkostemp(buf, O_WRONLY | O_CLOEXEC);
         if (fd < 0) {
             snprintf(errbuf->s, errbuf->n, "mkstemp() failed for %s, %s",
                 progpaths[i], strerror(errno));
