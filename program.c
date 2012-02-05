@@ -143,6 +143,8 @@ void program_result_free(struct program_result *res) {
 }
 
 struct child_std {
+    const char *name;
+    int targetfd;
     const char *template;
     char *path;
     int fd;
@@ -174,8 +176,6 @@ int child_std_open(
     return 0;
 }
 
-static const char *stdname[2] = {"stdout", "stderr"};
-
 int child_std_setup(
     struct program_result *res,
     int commfd,
@@ -188,25 +188,24 @@ int child_std_setup(
             return -1;
         }
 
-    const char *progpaths[] = {
-        res->prog->stdout,
-        res->prog->stderr};
+    struct child_std cs[] = {
+        {"stdout", STDOUT_FILENO, res->prog->stdout, NULL, -1},
+        {"stderr", STDERR_FILENO, res->prog->stderr, NULL, -1}};
 
-    for (int i=0; i<2; i++) {
-        struct child_std cs = {progpaths[i], NULL, -1};
-        if (child_std_open(&cs, errbuf) < 0) {
-            if (cs.path != NULL) free(cs.path);
+    for (int i=0; i<sizeof(cs)/sizeof(struct child_std); i++) {
+        if (child_std_open(&cs[i], errbuf) < 0) {
+            if (cs[i].path != NULL) free(cs[i].path);
             return -1;
         }
 
-        if (child_comm_send_filepath(commfd, stdname[i], cs.path) < 0)
+        if (child_comm_send_filepath(commfd, cs[i].name, cs[i].path) < 0)
             exit(CHILD_EXIT_COMMERROR);
 
-        free(cs.path);
+        free(cs[i].path);
 
-        if (dup2(cs.fd, i+1) < 0) {
+        if (dup2(cs[i].fd, cs[i].targetfd) < 0) {
             snprintf(errbuf->s, errbuf->n,
-                "%s dup2 failed, %s", stdname[i], strerror(errno));
+                "%s dup2 failed, %s", cs[i].name, strerror(errno));
             return -1;
         }
     }
