@@ -161,12 +161,6 @@ int child_std_setup(
         res->prog->stderr};
 
     for (int i=0; i<2; i++) {
-        if (progpaths[i] == NULL)
-            progpaths[i] = nullfile;
-        else if (progpaths[i] != nullfile &&
-                 strcmp(progpaths[i], nullfile) == 0)
-            progpaths[i] = nullfile;
-
         int fd = -1;
         char *buf = NULL;
         buf = strdup(progpaths[i]);
