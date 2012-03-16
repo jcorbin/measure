@@ -168,6 +168,8 @@ int main(unsigned int argc, const char *argv[]) {
 
     setup_signal_handlers();
 
+    if (prog.stdin != NULL)
+        printf("stdin=%s\n", prog.stdin);
     puts("start end utime stime maxrss ixrss idrss isrss minflt majflt "
          "nswap inblock oublock msgsnd msgrcv nsignals nvcsw nivcsw "
          "stdout stderr");
