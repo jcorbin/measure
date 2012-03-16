@@ -20,6 +20,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/stat.h>
 #include <unistd.h>
 
 #include "error.h"
@@ -57,6 +58,9 @@ void print_result(struct program_result *res) {
 
 // for placing error messages in
 #define ERRBUF_SIZE 4096
+
+// for reading stdin
+#define BUFFER_SIZE 4096
 
 static const char *calledname = NULL;
 
@@ -117,6 +121,54 @@ void cleanup_current_result(void) {
         unlink(res.stderr);
     if (res.pid != 0)
         polite_kill(res.pid);
+}
+
+int buffer_stdin(
+    struct program *prog,
+    struct error_buffer *errbuf) {
+
+    char path[] = "stdin_XXXXXX";
+    int fd = mkstemp(path);
+    if (fd < 0) {
+        snprintf(errbuf->s, errbuf->n,
+            "mkstemp() failed for stdin_XXXXXX, %s", strerror(errno));
+        return -1;
+    }
+    prog->stdin = strdup(path);
+    if (prog->stdin == NULL) {
+        strncpy(errbuf->s, "strdup() failed", errbuf->n);
+        return -1;
+    }
+
+    if (fchmod(fd, S_IRUSR) < 0) {
+        snprintf(errbuf->s, errbuf->n, "fchmod() failed for %s, %s",
+            prog->path, strerror(errno));
+        close(fd);
+        return -1;
+    }
+
+    unsigned char buffer[BUFFER_SIZE];
+    for (;;) {
+        ssize_t got = read(STDIN_FILENO, buffer, BUFFER_SIZE);
+        if (got == 0) break;
+        if (fd < 0) {
+            snprintf(errbuf->s, errbuf->n,
+                "read failed, %s", strerror(errno));
+            close(fd);
+            return -1;
+        }
+
+        ssize_t wrote = write(fd, buffer, got);
+        if (wrote < got) {
+            snprintf(errbuf->s, errbuf->n,
+                "write failed, %s", strerror(errno));
+            close(fd);
+            return -1;
+        }
+    }
+    close(fd);
+
+    return 0;
 }
 
 int main(unsigned int argc, const char *argv[]) {
