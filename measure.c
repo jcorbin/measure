@@ -131,7 +131,6 @@ int main(unsigned int argc, const char *argv[]) {
 
     unsigned int printusage = 0;
     struct program prog = program_init();
-    prog.stdin  = NULL; // TODO: support "-";
     prog.stdout = "stdout_XXXXXX";
     prog.stderr = "stderr_XXXXXX";
 
