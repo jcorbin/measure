@@ -63,7 +63,11 @@ result_collector = Collector(
     Selector('stderr_bytes', lambda r: os.path.getsize(r.stderr)))
 
 records = (line.strip() for line in sys.stdin)
-records = named_records(records)
+first_line = next(record)
+if first_line.starts_with('stdin='):
+    # TODO: do something with it?
+    first_line = None
+records = named_records(records, initial_line=first_line)
 
 has_usage = False # if --usage was used
 if has_usage:
