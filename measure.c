@@ -17,6 +17,7 @@
  */
 
 #include <errno.h>
+#include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -214,6 +215,35 @@ int main(unsigned int argc, const char *argv[]) {
     if (prog.path == NULL) {
         fprintf(stderr, "%s: missing command\n", calledname);
         exit(1);
+    }
+
+    if (lseek(STDIN_FILENO, 0, SEEK_CUR) < 0) {
+        if (errno != ESPIPE) {
+            perror("lseek");
+            exit(1);
+        }
+
+        if (buffer_stdin(&prog, &errbuf) < 0) {
+            fprintf(stderr, "%s: failed to buffer stdin: %s\n",
+                calledname, errbuf.s);
+            exit(1);
+        }
+
+        int fd = open(prog.stdin, O_RDONLY);
+        if (fd < 0) {
+            perror("open");
+            exit(1);
+        }
+
+        if (dup2(fd, STDIN_FILENO) < 0) {
+            perror("dup2");
+            exit(1);
+        }
+
+        if (close(fd) < 0) {
+            perror("close");
+            exit(1);
+        }
     }
 
     atexit(cleanup_current_result);
