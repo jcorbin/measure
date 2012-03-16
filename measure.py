@@ -143,8 +143,10 @@ def create_record_class(fields):
     return NamedRecord
 
 class named_records(object):
-    def __init__(self, lines):
-        self.record_class = create_record_class(next(lines))
+    def __init__(self, lines, initial_line=None):
+        if initial_line is None:
+            initial_line = next(lines)
+        self.record_class = create_record_class(initial_line)
         self.lines = lines
 
     @property
