@@ -55,6 +55,7 @@ void print_result(struct program_result *res) {
     printf(" %s %s", res->stdout, res->stderr);
 }
 
+// for placing error messages in
 #define ERRBUF_SIZE 4096
 
 static const char *calledname = NULL;
