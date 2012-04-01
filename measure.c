@@ -217,7 +217,9 @@ int main(unsigned int argc, const char *argv[]) {
         exit(1);
     }
 
-    if (lseek(STDIN_FILENO, 0, SEEK_CUR) < 0) {
+    if (isatty(STDIN_FILENO)) {
+        prog.stdin = "/dev/null";
+    } else if (lseek(STDIN_FILENO, 0, SEEK_CUR) < 0) {
         if (errno != ESPIPE) {
             perror("lseek");
             exit(1);
