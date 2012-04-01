@@ -228,7 +228,9 @@ int main(unsigned int argc, const char *argv[]) {
                 calledname, errbuf.s);
             exit(1);
         }
+    }
 
+    if (prog.stdin != NULL) {
         int fd = open(prog.stdin, O_RDONLY);
         if (fd < 0) {
             perror("open");
