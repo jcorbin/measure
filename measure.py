@@ -60,7 +60,7 @@ class timeval(namedtuple('timeval', 's ms')):
     __floordiv__ = scalar_op(floordiv)
 
     def asnumber(self):
-        return self.s * 10e6 + self.ms
+        return self.s * 10**6 + self.ms
 
     def __str__(self):
         return '%ds,%dms' % self
