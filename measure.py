@@ -82,7 +82,7 @@ class timespec(namedtuple('timespec', 's ns')):
     __floordiv__ = scalar_op(floordiv)
 
     def asnumber(self):
-        return self.s * 10e9 + self.ns
+        return self.s * 10**9 + self.ns
 
     def __str__(self):
         return '%ds,%dns' % self
