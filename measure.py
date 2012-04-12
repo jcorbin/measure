@@ -143,6 +143,14 @@ def create_record_class(fields):
     return NamedRecord
 
 class named_records(object):
+    @classmethod
+    def read(cls, lines):
+        first_line = next(lines)
+        if first_line.startswith('stdin='):
+            # TODO: do something with it?
+            first_line = None
+        return cls(lines, initial_line=first_line)
+
     def __init__(self, lines, initial_line=None):
         if initial_line is None:
             initial_line = next(lines)
