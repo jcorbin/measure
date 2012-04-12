@@ -64,7 +64,7 @@ result_collector = Collector(
 
 records = (line.strip() for line in sys.stdin)
 first_line = next(record)
-if first_line.starts_with('stdin='):
+if first_line.startswith('stdin='):
     # TODO: do something with it?
     first_line = None
 records = named_records(records, initial_line=first_line)
