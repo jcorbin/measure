@@ -54,7 +54,7 @@ void print_result(struct program_result *res) {
         r->ru_msgsnd, r->ru_msgrcv, r->ru_nsignals,
         r->ru_nvcsw, r->ru_nivcsw);
 
-    printf(" %s %s", res->stdout, res->stderr);
+    printf(" %d %s %s", res->status, res->stdout, res->stderr);
 }
 
 // for placing error messages in
@@ -258,7 +258,7 @@ int main(unsigned int argc, const char *argv[]) {
         printf("stdin=%s\n", prog.stdin);
     puts("start end utime stime maxrss ixrss idrss isrss minflt majflt "
          "nswap inblock oublock msgsnd msgrcv nsignals nvcsw nivcsw "
-         "stdout stderr");
+         "status stdout stderr");
     fflush(stdout);
 
     unsigned int issample = strcmp(calledname, "sample") == 0;
