@@ -59,8 +59,11 @@ class timeval(namedtuple('timeval', 's ms')):
     __truediv__ = scalar_op(truediv)
     __floordiv__ = scalar_op(floordiv)
 
-    def asnumber(self):
+    def asint(self):
         return self.s * 10**6 + self.ms
+
+    def asfloat(self):
+        return self.s + self.ms / 10**6
 
     def __str__(self):
         return '%ds,%dms' % self
@@ -81,8 +84,11 @@ class timespec(namedtuple('timespec', 's ns')):
     __truediv__ = scalar_op(truediv)
     __floordiv__ = scalar_op(floordiv)
 
-    def asnumber(self):
+    def asint(self):
         return self.s * 10**9 + self.ns
+
+    def asfloat(self):
+        return self.s + self.ns / 10**9
 
     def __str__(self):
         return '%ds,%dns' % self
