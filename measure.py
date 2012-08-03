@@ -207,3 +207,9 @@ class Collector(tuple):
     def add(self, value):
         for sample, selector in zip(self, self.selectors):
             sample.append(selector(value))
+
+if __name__ == '__main__':
+    from pprint import pprint
+    import sys
+    records = named_records.read(sys.stdin)
+    pprint(list(records))
