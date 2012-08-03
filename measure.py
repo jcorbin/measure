@@ -156,7 +156,16 @@ class named_records(object):
             if '=' not in line: break
             line = line.rstrip('\r\n')
             key, val = line.split('=', 1)
-            runinfo[key] = val
+            armatch = re.match(r'(\w+)\[(\d+)\]$', key)
+            if armatch:
+                key, i = armatch.groups()
+                i = int(i)
+                ar = runinfo.setdefault(key, [])
+                while len(ar) < i+1:
+                    ar.append(None)
+                ar[i] = val
+            else:
+                runinfo[key] = val
 
         self = cls(lines, initial_line=line)
         self.runinfo = runinfo
