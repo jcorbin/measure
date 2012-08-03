@@ -233,6 +233,7 @@ int main(unsigned int argc, const char *argv[]) {
     unsigned int printusage = 0;
     unsigned int compressstdout = 0;
     unsigned int compressstderr = 0;
+    int nrecords = -1;
     struct program prog = program_init();
     prog.stdout = "stdout_XXXXXX";
     prog.stderr = "stderr_XXXXXX";
@@ -328,7 +329,8 @@ int main(unsigned int argc, const char *argv[]) {
          "status stdout stderr");
     fflush(stdout);
 
-    while (1) {
+    int nrecord = 0;
+    while (nrecords < 0 || nrecord++ < nrecords) {
         if (printusage) {
             // usage before running program
             memset(&res, 0, sizeof(struct program_result));
