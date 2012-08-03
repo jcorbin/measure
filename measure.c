@@ -22,6 +22,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 #include <unistd.h>
 
 #include "error.h"
@@ -170,6 +172,48 @@ int buffer_stdin(
     close(fd);
 
     return 0;
+}
+
+char *gzip_file(const char *path, struct error_buffer *errbuf) {
+    size_t l = strlen(path);
+    char *gzpath = malloc(l + 4);
+    strcpy(gzpath, path);
+    strcpy((gzpath + l), ".gz");
+
+    pid_t gzippid;
+    int returncode;
+    pid_t rpid;
+
+    printf("gzip_file(%s)\n", path);
+    fflush(stdout);
+    switch (gzippid = fork()) {
+    case -1:
+        snprintf(errbuf->s, errbuf->n,
+            "fork() failed, %s", strerror(errno));
+        return NULL;
+    case 0:
+        printf("about to execlp\n");
+        if (execlp("gzip", "gzip", path, NULL) < 0) {
+            fprintf(stderr,
+                "execlp(\"gzip\", \"gzip\", \"%s\") failed: %s\n",
+                path, strerror(errno));
+        }
+        exit(0xfe);
+    default:
+        rpid = waitpid(gzippid, &returncode, 0);
+        if (rpid == -1) {
+            snprintf(errbuf->s, errbuf->n,
+                "waitpid() failed, %s", strerror(errno));
+            return NULL;
+        }
+        if (returncode != 0) {
+            snprintf(errbuf->s, errbuf->n,
+                "gzip exited non-zero %i", returncode);
+            return NULL;
+        }
+    }
+
+    return gzpath;
 }
 
 int main(unsigned int argc, const char *argv[]) {
