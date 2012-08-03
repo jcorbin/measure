@@ -237,6 +237,8 @@ int main(unsigned int argc, const char *argv[]) {
     prog.stdout = "stdout_XXXXXX";
     prog.stderr = "stderr_XXXXXX";
 
+    unsigned int issample = strcmp(calledname, "sample") == 0;
+
     unsigned int i;
     for (i=1; i<argc; i++)
         if (argv[i][0] == '-') {
@@ -325,8 +327,6 @@ int main(unsigned int argc, const char *argv[]) {
          "nswap inblock oublock msgsnd msgrcv nsignals nvcsw nivcsw "
          "status stdout stderr");
     fflush(stdout);
-
-    unsigned int issample = strcmp(calledname, "sample") == 0;
 
     while (1) {
         if (printusage) {
