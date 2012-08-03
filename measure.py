@@ -151,11 +151,15 @@ def create_record_class(fields):
 class named_records(object):
     @classmethod
     def read(cls, lines):
+        runinfo = {}
         for line in lines:
             if '=' not in line: break
-            # TODO: do something with it?
+            line = line.rstrip('\r\n')
+            key, val = line.split('=', 1)
+            runinfo[key] = val
 
         self = cls(lines, initial_line=line)
+        self.runinfo = runinfo
         return self
 
     def __init__(self, lines, initial_line=None):
@@ -212,4 +216,5 @@ if __name__ == '__main__':
     from pprint import pprint
     import sys
     records = named_records.read(sys.stdin)
+    pprint(records.runinfo)
     pprint(list(records))
