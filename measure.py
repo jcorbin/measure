@@ -155,7 +155,9 @@ class named_records(object):
         if line.startswith('stdin='):
             # TODO: do something with it?
             line = None
-        return cls(lines, initial_line=line)
+
+        self = cls(lines, initial_line=line)
+        return self
 
     def __init__(self, lines, initial_line=None):
         if initial_line is None:
