@@ -313,6 +313,14 @@ int main(unsigned int argc, const char *argv[]) {
 
     printf("prog=%s\n", prog.path);
 
+    const char **args = prog.argv;
+    i = 0;
+    while (*args != NULL) {
+        printf("argv[%i]=%s\n", i, *args);
+        args++;
+        i++;
+    }
+
     puts("start end utime stime maxrss ixrss idrss isrss minflt majflt "
          "nswap inblock oublock msgsnd msgrcv nsignals nvcsw nivcsw "
          "status stdout stderr");
