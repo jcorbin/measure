@@ -151,10 +151,9 @@ def create_record_class(fields):
 class named_records(object):
     @classmethod
     def read(cls, lines):
-        line = next(lines)
-        if line.startswith('stdin='):
+        for line in lines:
+            if '=' not in line: break
             # TODO: do something with it?
-            line = None
 
         self = cls(lines, initial_line=line)
         return self
