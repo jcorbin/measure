@@ -83,6 +83,9 @@ void usage(unsigned int longhelp) {
         "              Compress stdout files with gzip\n"
         "  --compress-stderr\n"
         "              Compress stderr files with gzip\n");
+    if (strcmp(calledname, "sample") == 0)
+        fprintf(stderr,
+            "  -n <N>      Only sample N times rather than indefinately.\n");
 
     if (! longhelp) {
         fprintf(stderr,
@@ -254,6 +257,13 @@ int main(unsigned int argc, const char *argv[]) {
                 compressstdout = 1;
             } else if (strcmp(argv[i], "--compress-stderr") == 0) {
                 compressstderr = 1;
+            } else if (issample && strcmp(argv[i], "-n") == 0) {
+                if (++i >= argc) {
+                    fprintf(stderr, "%s: missing argument for -n\n",
+                        calledname, argv[i]);
+                    exit(1);
+                }
+                nrecords = atoi(argv[i]);
             } else if (strcmp(argv[i], "--") == 0) {
                 i++;
                 break;
