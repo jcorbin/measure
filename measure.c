@@ -192,7 +192,6 @@ char *gzip_file(const char *path, struct error_buffer *errbuf) {
     int returncode;
     pid_t rpid;
 
-    printf("gzip_file(%s)\n", path);
     fflush(stdout);
     switch (gzippid = fork()) {
     case -1:
@@ -200,7 +199,6 @@ char *gzip_file(const char *path, struct error_buffer *errbuf) {
             "fork() failed, %s", strerror(errno));
         return NULL;
     case 0:
-        printf("about to execlp\n");
         if (execlp("gzip", "gzip", path, NULL) < 0) {
             fprintf(stderr,
                 "execlp(\"gzip\", \"gzip\", \"%s\") failed: %s\n",
