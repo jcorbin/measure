@@ -71,7 +71,10 @@ void usage(unsigned int longhelp) {
     fprintf(stderr,
         "Usage: %s [options] [--] command [command arguments]\n"
         "Run a command %s and collect various measurements.\n"
-        "\n"
+        "\n",
+        calledname,
+        strcmp(calledname, "sample") == 0 ? "repeatedly" : "once");
+    fprintf(stderr,
         "  -h          Show short usage screen.\n"
         "  --help      Show usage with explanatory epilog.\n"
         "  --usage     Print resource usage of the measuring process before\n"
@@ -79,9 +82,7 @@ void usage(unsigned int longhelp) {
         "  --compress-stdout\n"
         "              Compress stdout files with gzip\n"
         "  --compress-stderr\n"
-        "              Compress stderr files with gzip\n",
-        calledname,
-        strcmp(calledname, "sample") == 0 ? "repeatedly" : "once");
+        "              Compress stderr files with gzip\n");
 
     if (! longhelp) {
         fprintf(stderr,
