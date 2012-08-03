@@ -77,7 +77,9 @@ void usage(unsigned int longhelp) {
         "  --usage     Print resource usage of the measuring process before\n"
         "              each command run.\n"
         "  --compress-stdout\n"
-        "              Compress stdout files with gzip\n",
+        "              Compress stdout files with gzip\n"
+        "  --compress-stderr\n"
+        "              Compress stderr files with gzip\n",
         calledname,
         strcmp(calledname, "sample") == 0 ? "repeatedly" : "once");
 
@@ -230,6 +232,7 @@ int main(unsigned int argc, const char *argv[]) {
 
     unsigned int printusage = 0;
     unsigned int compressstdout = 0;
+    unsigned int compressstderr = 0;
     struct program prog = program_init();
     prog.stdout = "stdout_XXXXXX";
     prog.stderr = "stderr_XXXXXX";
@@ -245,6 +248,8 @@ int main(unsigned int argc, const char *argv[]) {
                 printusage = 1;
             } else if (strcmp(argv[i], "--compress-stdout") == 0) {
                 compressstdout = 1;
+            } else if (strcmp(argv[i], "--compress-stderr") == 0) {
+                compressstderr = 1;
             } else if (strcmp(argv[i], "--") == 0) {
                 i++;
                 break;
@@ -339,6 +344,17 @@ int main(unsigned int argc, const char *argv[]) {
             }
             free((char *) res.stdout);
             res.stdout = gzstdout;
+        }
+
+        if (compressstderr) {
+            char *gzstderr = gzip_file(res.stderr, &errbuf);
+            if (gzstderr == NULL) {
+                fputs(errbuf.s, stderr);
+                fputc('\n', stderr);
+                exit(2);
+            }
+            free((char *) res.stderr);
+            res.stderr = gzstderr;
         }
 
         print_result(&res);
