@@ -30,8 +30,11 @@ class Report:
     def fields(self):
         yield 'Sample size', len(self.collection[0])
         for field, sample in zip(self.collection.fields, self.collection):
-            mean = round(sum(sample) / len(sample), 2)
-            mean = str(mean).rstrip('.0') or '0'
+            sample = [x for x in sample if x is not None]
+            if sample:
+                mean = round(sum(sample) / len(sample), 2)
+            else:
+                mean = None
             yield field, mean
 
     def __str__(self):
