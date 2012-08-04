@@ -16,6 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Measure.  If not, see <http://www.gnu.org/licenses/>.
 
+import errno
 import os
 import sys
 from operator import attrgetter
@@ -51,6 +52,14 @@ class Report:
             s += '\n'
         return s
 
+def maybe_file_size(path):
+    try:
+        return os.path.getsize(path)
+    except OSError as e:
+        if e.errno != errno.ENOENT:
+            print(e, file=sys.stderr)
+        return None
+
 usage_collector = Collector(
     Selector('cputime', lambda r: (r.utime - r.stime).asint()),
     Selector('maxrss'),
@@ -73,8 +82,8 @@ result_collector = Collector(
     Selector('oublock'),
     Selector('nvcsw'),
     Selector('nivcsw'),
-    Selector('stdout_bytes', lambda r: os.path.getsize(r.stdout)),
-    Selector('stderr_bytes', lambda r: os.path.getsize(r.stderr)))
+    Selector('stdout_bytes', lambda r: maybe_file_size(r.stdout)),
+    Selector('stderr_bytes', lambda r: maybe_file_size(r.stderr)))
 
 records = named_records.read(sys.stdin)
 
