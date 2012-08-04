@@ -35,11 +35,16 @@ class RecordMetaClass(type):
                 dict[field] = property(itemgetter(i))
         return type.__new__(mcs, name, bases, dict)
 
+from numbers import Number
+
 def componentwise_op(op):
     def componentwise(a, b):
         cls = a.__class__
         if not isinstance(b, cls):
-            return NotImplemented
+            if isinstance(b, Number):
+                return cls(*(op(ai, b) for ai in a))
+            else:
+                return NotImplemented
         return cls(*map(op, a, b))
     componentwise.__name__ += '_' + op.__name__
     return componentwise
