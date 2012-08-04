@@ -78,6 +78,9 @@ class timeval(namedtuple('timeval', 's ms')):
     __truediv__ = scalar_op(truediv)
     __floordiv__ = scalar_op(floordiv)
 
+    def __round__(self, prec):
+        return timeval(*(round(i, prec) for i in self))
+
     def asint(self):
         return self.s * 10**6 + self.ms
 
@@ -104,6 +107,9 @@ class timespec(namedtuple('timespec', 's ns')):
     __pow__ = scalar_op(pow)
     __truediv__ = scalar_op(truediv)
     __floordiv__ = scalar_op(floordiv)
+
+    def __round__(self, prec):
+        return timeval(*(round(i, prec) for i in self))
 
     def asint(self):
         return self.s * 10**9 + self.ns
