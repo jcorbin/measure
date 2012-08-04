@@ -23,19 +23,25 @@ from measure import *
 
 # dirt-simple means computing script, doesn't know nuthin' 'bout confidence or credibility ;-)
 
-def report(coll):
-    yield 'Sample size', len(coll[0])
-    for field, sample in zip(coll.fields, coll):
-        mean = round(sum(sample) / len(sample), 2)
-        mean = str(mean).rstrip('.0') or '0'
-        yield field, mean
+class Report:
+    def __init__(self, collection):
+        self.collection = collection
 
-def print_pairs(pairs):
-    pairs = list(pairs)
-    maxlen = max(len(label) for label, _ in pairs)
-    fmt = '%% %ds: %%s' % maxlen
-    for pair in pairs:
-        print(fmt % pair)
+    def fields(self):
+        yield 'Sample size', len(self.collection[0])
+        for field, sample in zip(self.collection.fields, self.collection):
+            mean = round(sum(sample) / len(sample), 2)
+            mean = str(mean).rstrip('.0') or '0'
+            yield field, mean
+
+    def __str__(self):
+        s = ''
+        fields = list(self.fields())
+        maxlen = max(len(label) for label, _ in fields)
+        fmt = '%% %ds: %%s' % maxlen
+        for pair in fields:
+            s += fmt % pair + '\n'
+        return s
 
 usage_collector = Collector(
     Selector('cputime', lambda r: (r.utime - r.stime).asint()),
@@ -71,10 +77,10 @@ if has_usage:
         colls[i % 1].add(record)
     for label, ss in zip(('Usage', 'Results'), colls):
         print('==', label)
-        print_pairs(report(ss))
+        print(Report(ss))
         print()
 else:
     for record in records:
         result_collector.add(record)
     print('== Results')
-    print_pairs(report(result_collector))
+    print(Report(result_collector))
