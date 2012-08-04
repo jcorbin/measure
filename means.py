@@ -38,9 +38,11 @@ class Report:
         s = ''
         fields = list(self.fields())
         maxlen = max(len(label) for label, _ in fields)
-        fmt = '%% %ds: %%s' % maxlen
-        for pair in fields:
-            s += fmt % pair + '\n'
+        maxlen += 2
+        for field, mean in fields:
+            s += (field + ':').ljust(maxlen)
+            s += mean
+            s += '\n'
         return s
 
 usage_collector = Collector(
