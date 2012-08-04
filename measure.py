@@ -49,6 +49,18 @@ def componentwise_op(op):
     componentwise.__name__ += '_' + op.__name__
     return componentwise
 
+def componentwise_rop(op):
+    def componentwise(a, b):
+        cls = a.__class__
+        if not isinstance(b, cls):
+            if isinstance(b, Number):
+                return cls(*(op(b, ai) for ai in a))
+            else:
+                return NotImplemented
+        return cls(*map(op, b, a))
+    componentwise.__name__ += '_' + op.__name__
+    return componentwise
+
 def scalar_op(op):
     def scalarr(x, s):
         cls = x.__class__
@@ -58,7 +70,9 @@ def scalar_op(op):
 
 class timeval(namedtuple('timeval', 's ms')):
     __add__ = componentwise_op(add)
+    __radd__ = componentwise_rop(add)
     __sub__ = componentwise_op(sub)
+    __rsub__ = componentwise_op(sub)
     __mul__ = scalar_op(mul)
     __pow__ = scalar_op(pow)
     __truediv__ = scalar_op(truediv)
@@ -83,7 +97,9 @@ class timeval(namedtuple('timeval', 's ms')):
 
 class timespec(namedtuple('timespec', 's ns')):
     __add__ = componentwise_op(add)
+    __radd__ = componentwise_rop(add)
     __sub__ = componentwise_op(sub)
+    __rsub__ = componentwise_op(sub)
     __mul__ = scalar_op(mul)
     __pow__ = scalar_op(pow)
     __truediv__ = scalar_op(truediv)
