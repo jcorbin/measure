@@ -61,7 +61,7 @@ def maybe_file_size(path):
         return None
 
 usage_collector = Collector(
-    Selector('cputime', lambda r: (r.utime - r.stime).asint()),
+    Selector('cputime', lambda r: (r.utime - r.stime)),
     Selector('maxrss'),
     Selector('minflt'),
     Selector('majflt'),
@@ -72,8 +72,8 @@ usage_collector = Collector(
     Selector('nivcsw'))
 
 result_collector = Collector(
-    Selector('wallclock', lambda r: (r.end - r.start).asint()),
-    Selector('cputime', lambda r: (r.utime - r.stime).asint()),
+    Selector('wallclock', lambda r: (r.end - r.start)),
+    Selector('cputime', lambda r: (r.utime - r.stime)),
     Selector('maxrss'),
     Selector('minflt'),
     Selector('majflt'),
