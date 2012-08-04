@@ -62,12 +62,7 @@ result_collector = Collector(
     Selector('stdout_bytes', lambda r: os.path.getsize(r.stdout)),
     Selector('stderr_bytes', lambda r: os.path.getsize(r.stderr)))
 
-records = (line.strip() for line in sys.stdin)
-first_line = next(record)
-if first_line.startswith('stdin='):
-    # TODO: do something with it?
-    first_line = None
-records = named_records(records, initial_line=first_line)
+records = named_records.read(sys.stdin)
 
 has_usage = False # if --usage was used
 if has_usage:
