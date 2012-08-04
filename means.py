@@ -41,7 +41,10 @@ class Report:
         maxlen += 2
         for field, mean in fields:
             s += (field + ':').ljust(maxlen)
-            s += mean
+            if isinstance(mean, float):
+                s += str(mean).rstrip('.0') or '0'
+            else:
+                s += str(mean)
             s += '\n'
         return s
 
