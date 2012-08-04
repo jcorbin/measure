@@ -1,3 +1,4 @@
 *.o
 measure
 sample
+__pycache__/
