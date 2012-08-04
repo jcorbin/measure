@@ -40,7 +40,7 @@ def componentwise_op(op):
         cls = a.__class__
         if not isinstance(b, cls):
             return NotImplemented
-        return cls(*tuple(map(op, a, b)))
+        return cls(*map(op, a, b))
     componentwise.__name__ += '_' + op.__name__
     return componentwise
 
