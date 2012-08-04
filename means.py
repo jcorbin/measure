@@ -69,8 +69,6 @@ if has_usage:
     colls = (usage_collector, result_collector)
     for i, record in enumerate(records):
         colls[i % 1].add(record)
-        os.unlink(record.stdout)
-        os.unlink(record.stderr)
     for label, ss in zip(('Usage', 'Results'), colls):
         print('==', label)
         print_pairs(report(ss))
@@ -78,7 +76,5 @@ if has_usage:
 else:
     for record in records:
         result_collector.add(record)
-        os.unlink(record.stdout)
-        os.unlink(record.stderr)
     print('== Results')
     print_pairs(report(result_collector))
