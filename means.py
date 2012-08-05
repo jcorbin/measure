@@ -50,7 +50,7 @@ class Report:
             else:
                 s += str(mean)
             s += '\n'
-        return s
+        return s.rstrip('\n')
 
 def maybe_file_size(path):
     try:
