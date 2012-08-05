@@ -204,6 +204,14 @@ class named_records(object):
         self.record_class = create_record_class(initial_line)
         self.lines = lines
 
+    def __getattr__(self, name):
+        try:
+            return self.runinfo[name]
+        except KeyError:
+            pass
+        raise AttributeError('no %s in %s' % (
+            name, self.__class__.__name__))
+
     @property
     def fields(self):
         return self.record_class._fields
