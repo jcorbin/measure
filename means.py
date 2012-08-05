@@ -17,6 +17,7 @@
 # along with Measure.  If not, see <http://www.gnu.org/licenses/>.
 
 import errno
+from functools import wraps
 import os
 import sys
 from operator import attrgetter
@@ -52,13 +53,16 @@ class Report:
             s += '\n'
         return s.rstrip('\n')
 
-def maybe_file_size(path):
-    try:
-        return os.path.getsize(path)
-    except OSError as e:
-        if e.errno != errno.ENOENT:
-            print(e, file=sys.stderr)
-        return None
+def maybe_path_exists(f):
+    @wraps(f)
+    def wrapper(x):
+        try:
+            return f(x)
+        except OSError as e:
+            if e.errno == errno.ENOENT:
+                return None
+            raise
+    return wrapper
 
 class RunReport:
 
@@ -76,8 +80,8 @@ class RunReport:
     result_extractors = (
         Selector('wallclock', lambda r: (r.end - r.start)),
         ) + usage_extractors + (
-        Selector('stdout_bytes', lambda r: maybe_file_size(r.stdout)),
-        Selector('stderr_bytes', lambda r: maybe_file_size(r.stderr)))
+        Selector('stdout_bytes', maybe_path_exists(lambda r: os.path.getsize(r.stdout))),
+        Selector('stderr_bytes', maybe_path_exists(lambda r: os.path.getsize(r.stderr))))
 
     results = None
     usage = None
