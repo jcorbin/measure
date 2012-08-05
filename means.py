@@ -90,9 +90,18 @@ class RunReport:
         self.run = run
 
         result_extractors = self.result_extractors
+
+        stdout_bytes = attrgetter('stdout')
+        stderr_bytes = attrgetter('stderr')
+
+        stdout_bytes = maybe_path_exists(
+            compose(os.path.getsize, stdout_bytes))
+        stderr_bytes = maybe_path_exists(
+            compose(os.path.getsize, stderr_bytes))
+
         result_extractors += (
-            Selector('stdout_bytes', maybe_path_exists(lambda r: os.path.getsize(r.stdout))),
-            Selector('stderr_bytes', maybe_path_exists(lambda r: os.path.getsize(r.stderr))))
+            Selector('stdout_bytes', stdout_bytes),
+            Selector('stderr_bytes', stderr_bytes))
 
         self.results = Collector(*result_extractors)
         colls = [self.results,]
