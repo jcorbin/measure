@@ -87,8 +87,7 @@ result_collector = Collector(
 
 records = named_records.read(sys.stdin)
 
-has_usage = False # if --usage was used
-if has_usage:
+if records.runinfo.get('hasusage', 'false').lower() == 'true':
     colls = (usage_collector, result_collector)
     for i, record in enumerate(records):
         colls[i % 1].add(record)
