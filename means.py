@@ -94,7 +94,7 @@ class RunReport:
 
         self.results = Collector(*result_extractors)
         colls = [self.results,]
-        if self.run.runinfo.get('hasusage', 'false').lower() == 'true':
+        if getattr(self.run, 'hasusage', 'false').lower() == 'true':
             self.usage = Collector(*self.usage_extractors)
             colls.append(self.usage)
         nc = len(colls)
