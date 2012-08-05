@@ -239,10 +239,10 @@ class Collector(tuple):
             i = self.fields.index(name)
         except ValueError:
             i = None
-        if i is None:
-            raise AttributeError('no %s in %s' % (
-                name, self.__class__.__name__))
-        return self[i]
+        else:
+            return self[i]
+        raise AttributeError('no %s in %s' % (
+            name, self.__class__.__name__))
 
     def add(self, value):
         for sample, selector in zip(self, self.selectors):
