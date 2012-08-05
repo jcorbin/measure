@@ -90,7 +90,7 @@ records = named_records.read(sys.stdin)
 if records.runinfo.get('hasusage', 'false').lower() == 'true':
     colls = (usage_collector, result_collector)
     for i, record in enumerate(records):
-        colls[i % 1].add(record)
+        colls[i % 2].add(record)
     for label, ss in zip(('Usage', 'Results'), colls):
         print('==', label)
         print(Report(ss))
