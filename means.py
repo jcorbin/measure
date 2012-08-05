@@ -19,6 +19,7 @@
 import errno
 from functools import wraps
 import os
+import re
 import sys
 from operator import attrgetter
 from measure import *
@@ -91,8 +92,13 @@ class RunReport:
 
         result_extractors = self.result_extractors
 
-        stdout_bytes = attrgetter('stdout')
-        stderr_bytes = attrgetter('stderr')
+        if not re.match('<.+>$', self.run.samplename):
+            basedir = os.path.dirname(os.path.realpath(self.run.samplename))
+            stdout_bytes = lambda r: os.path.join(basedir, r.stdout)
+            stderr_bytes = lambda r: os.path.join(basedir, r.stderr)
+        else:
+            stdout_bytes = attrgetter('stdout')
+            stderr_bytes = attrgetter('stderr')
 
         stdout_bytes = maybe_path_exists(
             compose(os.path.getsize, stdout_bytes))
