@@ -92,6 +92,8 @@ class RunReport:
 
         result_extractors = self.result_extractors
 
+        # TODO: support compressed output
+
         if not re.match('<.+>$', self.run.samplename):
             basedir = os.path.dirname(os.path.realpath(self.run.samplename))
             stdout_bytes = lambda r: os.path.join(basedir, r.stdout)
