@@ -64,6 +64,8 @@ def maybe_path_exists(f):
             raise
     return wrapper
 
+compose = lambda f, g: lambda x: f(g(x))
+
 class RunReport:
 
     usage_extractors = (
