@@ -62,7 +62,7 @@ def maybe_file_size(path):
 
 class RunReport:
 
-    usage_collector = Collector(
+    usage_extractors = (
         Selector('cputime', lambda r: (r.utime - r.stime)),
         Selector('maxrss'),
         Selector('minflt'),
@@ -73,35 +73,31 @@ class RunReport:
         Selector('nvcsw'),
         Selector('nivcsw'))
 
-    result_collector = Collector(
+    result_extractors = (
         Selector('wallclock', lambda r: (r.end - r.start)),
-        Selector('cputime', lambda r: (r.utime - r.stime)),
-        Selector('maxrss'),
-        Selector('minflt'),
-        Selector('majflt'),
-        Selector('nswap'),
-        Selector('inblock'),
-        Selector('oublock'),
-        Selector('nvcsw'),
-        Selector('nivcsw'),
+        ) + usage_extractors + (
         Selector('stdout_bytes', lambda r: maybe_file_size(r.stdout)),
         Selector('stderr_bytes', lambda r: maybe_file_size(r.stderr)))
 
+    results = None
+    usage = None
+
     def __init__(self, run):
         self.run = run
+        self.results = Collector(*self.result_extractors)
+        colls = [self.results,]
+        if self.run.runinfo.get('hasusage', 'false').lower() == 'true':
+            self.usage = Collector(*self.usage_extractors)
+            colls.append(self.usage)
+        nc = len(colls)
+        for i, record in enumerate(self.run):
+            colls[i % nc].add(record)
 
     def __str__(self):
         s = ''
-        if self.run.runinfo.get('hasusage', 'false').lower() == 'true':
-            colls = (self.usage_collector, self.result_collector)
-            for i, record in enumerate(self.run):
-                colls[i % 2].add(record)
-            for label, ss in zip(('Usage', 'Results'), colls):
-                s += '== %s\n%s\n\n' % (label, Report(ss))
-        else:
-            for record in self.run:
-                self.result_collector.add(record)
-            s += '== Results\n%s\n' % Report(self.result_collector)
+        if self.usage is not None:
+            s += '== Usage\n%s\n\n' % Report(self.usage)
+        s += '== Results\n%s' % Report(self.results)
         return s
 
 print(RunReport(named_records.read(sys.stdin)))
