@@ -178,7 +178,9 @@ def create_record_class(fields):
 class named_records(object):
     @classmethod
     def read(cls, lines):
-        runinfo = {}
+        runinfo = {
+            'samplename': lines.name
+        }
         for line in lines:
             if '=' not in line: break
             line = line.rstrip('\r\n')
