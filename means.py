@@ -60,43 +60,48 @@ def maybe_file_size(path):
             print(e, file=sys.stderr)
         return None
 
-usage_collector = Collector(
-    Selector('cputime', lambda r: (r.utime - r.stime)),
-    Selector('maxrss'),
-    Selector('minflt'),
-    Selector('majflt'),
-    Selector('nswap'),
-    Selector('inblock'),
-    Selector('oublock'),
-    Selector('nvcsw'),
-    Selector('nivcsw'))
+class RunReport:
 
-result_collector = Collector(
-    Selector('wallclock', lambda r: (r.end - r.start)),
-    Selector('cputime', lambda r: (r.utime - r.stime)),
-    Selector('maxrss'),
-    Selector('minflt'),
-    Selector('majflt'),
-    Selector('nswap'),
-    Selector('inblock'),
-    Selector('oublock'),
-    Selector('nvcsw'),
-    Selector('nivcsw'),
-    Selector('stdout_bytes', lambda r: maybe_file_size(r.stdout)),
-    Selector('stderr_bytes', lambda r: maybe_file_size(r.stderr)))
+    usage_collector = Collector(
+        Selector('cputime', lambda r: (r.utime - r.stime)),
+        Selector('maxrss'),
+        Selector('minflt'),
+        Selector('majflt'),
+        Selector('nswap'),
+        Selector('inblock'),
+        Selector('oublock'),
+        Selector('nvcsw'),
+        Selector('nivcsw'))
 
-records = named_records.read(sys.stdin)
+    result_collector = Collector(
+        Selector('wallclock', lambda r: (r.end - r.start)),
+        Selector('cputime', lambda r: (r.utime - r.stime)),
+        Selector('maxrss'),
+        Selector('minflt'),
+        Selector('majflt'),
+        Selector('nswap'),
+        Selector('inblock'),
+        Selector('oublock'),
+        Selector('nvcsw'),
+        Selector('nivcsw'),
+        Selector('stdout_bytes', lambda r: maybe_file_size(r.stdout)),
+        Selector('stderr_bytes', lambda r: maybe_file_size(r.stderr)))
 
-if records.runinfo.get('hasusage', 'false').lower() == 'true':
-    colls = (usage_collector, result_collector)
-    for i, record in enumerate(records):
-        colls[i % 2].add(record)
-    for label, ss in zip(('Usage', 'Results'), colls):
-        print('==', label)
-        print(Report(ss))
-        print()
-else:
-    for record in records:
-        result_collector.add(record)
-    print('== Results')
-    print(Report(result_collector))
+    def __init__(self, run):
+        self.run = run
+
+    def __str__(self):
+        s = ''
+        if self.run.runinfo.get('hasusage', 'false').lower() == 'true':
+            colls = (self.usage_collector, self.result_collector)
+            for i, record in enumerate(self.run):
+                colls[i % 2].add(record)
+            for label, ss in zip(('Usage', 'Results'), colls):
+                s += '== %s\n%s\n\n' % (label, Report(ss))
+        else:
+            for record in self.run:
+                self.result_collector.add(record)
+            s += '== Results\n%s\n' % Report(self.result_collector)
+        return s
+
+print(RunReport(named_records.read(sys.stdin)))
