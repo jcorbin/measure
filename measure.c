@@ -241,6 +241,8 @@ int main(unsigned int argc, const char *argv[]) {
     prog.stderr = "stderr_XXXXXX";
 
     unsigned int issample = strcmp(calledname, "sample") == 0;
+    if (! issample)
+        nrecords = 1;
 
     unsigned int i;
     for (i=1; i<argc; i++)
@@ -384,9 +386,6 @@ int main(unsigned int argc, const char *argv[]) {
         fflush(stdout);
         result_sent = 1;
         program_result_free(&res);
-
-        if (! issample)
-            break;
     }
 
     // TODO: free things?
