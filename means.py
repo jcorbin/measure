@@ -79,16 +79,20 @@ class RunReport:
 
     result_extractors = (
         Selector('wallclock', lambda r: (r.end - r.start)),
-        ) + usage_extractors + (
-        Selector('stdout_bytes', maybe_path_exists(lambda r: os.path.getsize(r.stdout))),
-        Selector('stderr_bytes', maybe_path_exists(lambda r: os.path.getsize(r.stderr))))
+    ) + usage_extractors
 
     results = None
     usage = None
 
     def __init__(self, run):
         self.run = run
-        self.results = Collector(*self.result_extractors)
+
+        result_extractors = self.result_extractors
+        result_extractors += (
+            Selector('stdout_bytes', maybe_path_exists(lambda r: os.path.getsize(r.stdout))),
+            Selector('stderr_bytes', maybe_path_exists(lambda r: os.path.getsize(r.stderr))))
+
+        self.results = Collector(*result_extractors)
         colls = [self.results,]
         if self.run.runinfo.get('hasusage', 'false').lower() == 'true':
             self.usage = Collector(*self.usage_extractors)
