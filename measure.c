@@ -258,12 +258,13 @@ int main(unsigned int argc, const char *argv[]) {
             } else if (strcmp(argv[i], "--compress-stderr") == 0) {
                 compressstderr = 1;
             } else if (issample && strcmp(argv[i], "-n") == 0) {
-                if (++i >= argc) {
+                if (++i < argc) {
+                    nrecords = atoi(argv[i]);
+                } else {
                     fprintf(stderr, "%s: missing argument for -n\n",
                         calledname, argv[i]);
                     exit(1);
                 }
-                nrecords = atoi(argv[i]);
             } else if (strcmp(argv[i], "--") == 0) {
                 i++;
                 break;
