@@ -338,6 +338,9 @@ int main(unsigned int argc, const char *argv[]) {
         i++;
     }
 
+    if (printusage)
+        printf("hasusage=true\n");
+
     puts("start end utime stime maxrss ixrss idrss isrss minflt majflt "
          "nswap inblock oublock msgsnd msgrcv nsignals nvcsw nivcsw "
          "status stdout stderr");
