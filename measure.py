@@ -41,13 +41,6 @@ class RecordMetaClass(type):
 
 from numbers import Number
 
-def scalar_op(op):
-    def scalarr(x, s):
-        cls = x.__class__
-        return cls(*(xi * s for xi in x))
-    scalarr.__name__ += '_' + op.__name__
-    return scalarr
-
 class timeval(namedtuple('timeval', 's us')):
     def __add__(a, b):
         if isinstance(b, Number):
