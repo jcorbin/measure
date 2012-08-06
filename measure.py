@@ -404,8 +404,21 @@ class Collector(tuple):
             sample.append(selector(value))
 
 if __name__ == '__main__':
-    from pprint import pprint
-    import sys
-    records = Run(sys.stdin)
-    pprint(records.runinfo)
-    pprint(list(records))
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument('files', metavar='FILE',
+        type=argparse.FileType('r'), nargs='*',
+        help='Sample files to read, use STDIN if none given')
+    args = parser.parse_args()
+
+    fields = None
+    for i, run in enumerate(map(Run, args.files)):
+        results = run.results()
+        runfields = results.fields
+        if i == 0:
+            fields = runfields
+            print('samplename', *fields)
+        else:
+            assert runfields == fields
+        for row in zip(*results):
+            print(run.samplename, *row)
