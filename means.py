@@ -42,18 +42,12 @@ def collection_stats(collection):
         yield field, mean
 
 def collection_report(collection):
-    s = ''
     fields = list(collection_stats(collection))
     maxlen = max(len(label) for label, _ in fields)
     maxlen += 2
-    for field, mean in fields:
-        s += (field + ':').ljust(maxlen)
-        if isinstance(mean, float):
-            s += str(mean).rstrip('.0') or '0'
-        else:
-            s += str(mean)
-        s += '\n'
-    return s.rstrip('\n')
+    return '\n'.join(
+        (field + ':').ljust(maxlen) + str(mean)
+        for field, mean in fields)
 
 def maybe_path_exists(f):
     @wraps(f)
