@@ -21,7 +21,8 @@ from measure import *
 
 # dirt-simple means computing script, doesn't know nuthin' 'bout confidence or credibility ;-)
 
-def collection_stats(collection):
+def run_stats(run):
+    collection = run.results()
     yield 'samples', len(collection[0])
     for field, sample in zip(collection.fields, collection):
         sample = [x for x in sample if x is not None]
@@ -49,7 +50,7 @@ runs = map(Run, args.files)
 if args.table:
     fields = None
     for i, run in enumerate(runs):
-        runfields, stats = zip(*collection_stats(run.results()))
+        runfields, stats = zip(*run_stats(run))
         if i == 0:
             fields = runfields
             print('samplename', *fields)
@@ -61,9 +62,8 @@ else:
     for i, run in enumerate(runs):
         if i > 0:
             print()
-        collection = run.results()
         print('== Results')
-        fields = list(collection_stats(collection))
+        fields = list(run_stats(run))
         maxlen = max(len(label) for label, _ in fields) + 2
         for field, mean in fields:
             print((field + ':').ljust(maxlen) + str(mean))
