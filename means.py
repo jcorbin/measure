@@ -125,9 +125,15 @@ class RunReport:
         s += '== Results\n%s' % collection_report(self.results)
         return s
 
-args = sys.argv[1:]
-fs = map(open, args) if args else (sys.stdin,)
-runs = map(named_records.read, fs)
+import argparse
+parser = argparse.ArgumentParser()
+parser.add_argument('files', metavar='FILE',
+    type=argparse.FileType('r'), nargs='*',
+    help='Sample files to read, use STDIN if none given')
+args = parser.parse_args()
+
+runs = map(named_records.read, args.files)
+
 for i, run in enumerate(runs):
     if i > 0:
         print()
