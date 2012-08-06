@@ -62,21 +62,7 @@ def maybe_path_exists(f):
 
 compose = lambda f, g: lambda x: f(g(x))
 
-result_extractors = (
-    Selector('wallclock', lambda r: (r.end - r.start)),
-    Selector('cputime', lambda r: (r.utime - r.stime)),
-    Selector('maxrss'),
-    Selector('minflt'),
-    Selector('majflt'),
-    Selector('nswap'),
-    Selector('inblock'),
-    Selector('oublock'),
-    Selector('nvcsw'),
-    Selector('nivcsw'))
-
 def run_collections(run):
-    results = result_extractors
-
     # TODO: support compressed output
 
     if not re.match('<.+>$', run.samplename):
@@ -92,11 +78,19 @@ def run_collections(run):
     stderr_bytes = maybe_path_exists(
         compose(os.path.getsize, stderr_bytes))
 
-    results += (
+    results = Collector(
+        Selector('wallclock', lambda r: (r.end - r.start)),
+        Selector('cputime', lambda r: (r.utime - r.stime)),
+        Selector('maxrss'),
+        Selector('minflt'),
+        Selector('majflt'),
+        Selector('nswap'),
+        Selector('inblock'),
+        Selector('oublock'),
+        Selector('nvcsw'),
+        Selector('nivcsw'),
         Selector('stdout_bytes', stdout_bytes),
         Selector('stderr_bytes', stderr_bytes))
-
-    results = Collector(*results)
     for record in run:
         results.add(record)
     return results
