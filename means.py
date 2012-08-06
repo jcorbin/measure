@@ -16,13 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Measure.  If not, see <http://www.gnu.org/licenses/>.
 
-import errno
-from functools import wraps
 from math import modf
-import os
-import re
-import sys
-from operator import attrgetter
 from measure import *
 
 # dirt-simple means computing script, doesn't know nuthin' 'bout confidence or credibility ;-)
@@ -49,52 +43,6 @@ def collection_report(collection):
         (field + ':').ljust(maxlen) + str(mean)
         for field, mean in fields)
 
-def maybe_path_exists(f):
-    @wraps(f)
-    def wrapper(x):
-        try:
-            return f(x)
-        except OSError as e:
-            if e.errno == errno.ENOENT:
-                return None
-            raise
-    return wrapper
-
-compose = lambda f, g: lambda x: f(g(x))
-
-def run_collections(run):
-    # TODO: support compressed output
-
-    if not re.match('<.+>$', run.samplename):
-        basedir = os.path.dirname(os.path.realpath(run.samplename))
-        stdout_bytes = lambda r: os.path.join(basedir, r.stdout)
-        stderr_bytes = lambda r: os.path.join(basedir, r.stderr)
-    else:
-        stdout_bytes = attrgetter('stdout')
-        stderr_bytes = attrgetter('stderr')
-
-    stdout_bytes = maybe_path_exists(
-        compose(os.path.getsize, stdout_bytes))
-    stderr_bytes = maybe_path_exists(
-        compose(os.path.getsize, stderr_bytes))
-
-    results = Collector(
-        Selector('wallclock', lambda r: (r.end - r.start)),
-        Selector('cputime', lambda r: (r.utime - r.stime)),
-        Selector('maxrss'),
-        Selector('minflt'),
-        Selector('majflt'),
-        Selector('nswap'),
-        Selector('inblock'),
-        Selector('oublock'),
-        Selector('nvcsw'),
-        Selector('nivcsw'),
-        Selector('stdout_bytes', stdout_bytes),
-        Selector('stderr_bytes', stderr_bytes))
-    for record in run:
-        results.add(record)
-    return results
-
 import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument('--table', '-t', action='store_true',
@@ -109,9 +57,7 @@ runs = map(Run, args.files)
 if args.table:
     fields = None
     for i, run in enumerate(runs):
-        results = run_collections(run)
-
-        runfields, stats = zip(*collection_stats(results))
+        runfields, stats = zip(*collection_stats(run.results()))
         if i == 0:
             fields = runfields
             print('samplename', *fields)
@@ -123,5 +69,4 @@ else:
     for i, run in enumerate(runs):
         if i > 0:
             print()
-        results = run_collections(run)
-        print('== Results\n%s' % collection_report(results))
+        print('== Results\n%s' % collection_report(run.results()))

@@ -16,8 +16,11 @@
 # along with Measure.  If not, see <http://www.gnu.org/licenses/>.
 
 import collections
+import errno
+import os
 import re
 from collections import namedtuple
+from functools import wraps
 from math import modf
 from operator import attrgetter, itemgetter
 
@@ -299,6 +302,19 @@ class named_records(object):
     def __next__(self):
         return self.record_class(next(self.lines))
 
+def maybe_path_exists(f):
+    @wraps(f)
+    def wrapper(x):
+        try:
+            return f(x)
+        except OSError as e:
+            if e.errno == errno.ENOENT:
+                return None
+            raise
+    return wrapper
+
+compose = lambda f, g: lambda x: f(g(x))
+
 class Run(named_records):
     def __init__(self, lines):
         self.runinfo = {}
@@ -326,6 +342,39 @@ class Run(named_records):
             pass
         raise AttributeError('no %s in %s' % (
             name, self.__class__.__name__))
+
+    def results(self):
+        # TODO: support compressed output
+
+        if not re.match('<.+>$', self.samplename):
+            basedir = os.path.dirname(os.path.realpath(self.samplename))
+            stdout_bytes = lambda r: os.path.join(basedir, r.stdout)
+            stderr_bytes = lambda r: os.path.join(basedir, r.stderr)
+        else:
+            stdout_bytes = attrgetter('stdout')
+            stderr_bytes = attrgetter('stderr')
+
+        stdout_bytes = maybe_path_exists(
+            compose(os.path.getsize, stdout_bytes))
+        stderr_bytes = maybe_path_exists(
+            compose(os.path.getsize, stderr_bytes))
+
+        results = Collector(
+            Selector('wallclock', lambda r: (r.end - r.start)),
+            Selector('cputime', lambda r: (r.utime - r.stime)),
+            Selector('maxrss'),
+            Selector('minflt'),
+            Selector('majflt'),
+            Selector('nswap'),
+            Selector('inblock'),
+            Selector('oublock'),
+            Selector('nvcsw'),
+            Selector('nivcsw'),
+            Selector('stdout_bytes', stdout_bytes),
+            Selector('stderr_bytes', stderr_bytes))
+        for record in self:
+            results.add(record)
+        return results
 
 class Selector(object):
     def __init__(self, name, f=None):
