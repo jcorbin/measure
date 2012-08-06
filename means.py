@@ -62,7 +62,8 @@ def maybe_path_exists(f):
 
 compose = lambda f, g: lambda x: f(g(x))
 
-usage_extractors = (
+result_extractors = (
+    Selector('wallclock', lambda r: (r.end - r.start)),
     Selector('cputime', lambda r: (r.utime - r.stime)),
     Selector('maxrss'),
     Selector('minflt'),
@@ -73,12 +74,7 @@ usage_extractors = (
     Selector('nvcsw'),
     Selector('nivcsw'))
 
-result_extractors = (
-    Selector('wallclock', lambda r: (r.end - r.start)),
-) + usage_extractors
-
 def run_collections(run):
-    usage = usage_extractors
     results = result_extractors
 
     # TODO: support compressed output
@@ -101,16 +97,9 @@ def run_collections(run):
         Selector('stderr_bytes', stderr_bytes))
 
     results = Collector(*results)
-    colls = [results]
-    if getattr(run, 'hasusage', 'false').lower() == 'true':
-        usage = Collector(*usage)
-        colls.append(usage)
-    else:
-        usage = None
-    nc = len(colls)
-    for i, record in enumerate(run):
-        colls[i % nc].add(record)
-    return results, usage
+    for record in run:
+        results.add(record)
+    return results
 
 import argparse
 parser = argparse.ArgumentParser()
@@ -126,9 +115,8 @@ runs = map(named_records.read, args.files)
 if args.table:
     fields = None
     for i, run in enumerate(runs):
-        results, usage = run_collections(run)
-        if usage is not None:
-            raise NotImplementedError('no support for usage in result_rows')
+        results = run_collections(run)
+
         runfields, stats = zip(*collection_stats(results))
         if i == 0:
             fields = runfields
@@ -141,8 +129,5 @@ else:
     for i, run in enumerate(runs):
         if i > 0:
             print()
-        results, usage = run_collections(run)
-        if usage is not None:
-            print('== Usage\n%s' % collection_report(usage))
-            print()
+        results = run_collections(run)
         print('== Results\n%s' % collection_report(results))
