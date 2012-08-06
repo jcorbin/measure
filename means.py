@@ -36,23 +36,19 @@ def collection_stats(collection):
             mean = None
         yield field, mean
 
-class Report:
-    def __init__(self, collection):
-        self.collection = collection
-
-    def __str__(self):
-        s = ''
-        fields = list(collection_stats(self.collection))
-        maxlen = max(len(label) for label, _ in fields)
-        maxlen += 2
-        for field, mean in fields:
-            s += (field + ':').ljust(maxlen)
-            if isinstance(mean, float):
-                s += str(mean).rstrip('.0') or '0'
-            else:
-                s += str(mean)
-            s += '\n'
-        return s.rstrip('\n')
+def collection_report(collection):
+    s = ''
+    fields = list(collection_stats(collection))
+    maxlen = max(len(label) for label, _ in fields)
+    maxlen += 2
+    for field, mean in fields:
+        s += (field + ':').ljust(maxlen)
+        if isinstance(mean, float):
+            s += str(mean).rstrip('.0') or '0'
+        else:
+            s += str(mean)
+        s += '\n'
+    return s.rstrip('\n')
 
 def maybe_path_exists(f):
     @wraps(f)
@@ -125,8 +121,8 @@ class RunReport:
     def __str__(self):
         s = ''
         if self.usage is not None:
-            s += '== Usage\n%s\n\n' % Report(self.usage)
-        s += '== Results\n%s' % Report(self.results)
+            s += '== Usage\n%s\n\n' % ollection_report(self.usage)
+        s += '== Results\n%s' % collection_report(self.results)
         return s
 
 args = sys.argv[1:]
