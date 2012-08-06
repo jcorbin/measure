@@ -112,18 +112,6 @@ def run_collections(run):
         colls[i % nc].add(record)
     return results, usage
 
-class RunReport:
-    def __init__(self, run):
-        self.run = run
-        self.results, self.usage = run_collections(run)
-
-    def __str__(self):
-        s = ''
-        if self.usage is not None:
-            s += '== Usage\n%s\n\n' % ollection_report(self.usage)
-        s += '== Results\n%s' % collection_report(self.results)
-        return s
-
 def result_rows(runs):
     fields = None
     for i, run in enumerate(runs):
@@ -157,4 +145,8 @@ else:
     for i, run in enumerate(runs):
         if i > 0:
             print()
-        print(RunReport(run))
+        results, usage = run_collections(run)
+        if usage is not None:
+            print('== Usage\n%s' % collection_report(usage))
+            print()
+        print('== Results\n%s' % collection_report(results))
