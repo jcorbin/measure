@@ -67,58 +67,60 @@ def maybe_path_exists(f):
 
 compose = lambda f, g: lambda x: f(g(x))
 
+usage_extractors = (
+    Selector('cputime', lambda r: (r.utime - r.stime)),
+    Selector('maxrss'),
+    Selector('minflt'),
+    Selector('majflt'),
+    Selector('nswap'),
+    Selector('inblock'),
+    Selector('oublock'),
+    Selector('nvcsw'),
+    Selector('nivcsw'))
+
+result_extractors = (
+    Selector('wallclock', lambda r: (r.end - r.start)),
+) + usage_extractors
+
+def run_collections(run):
+    usage = usage_extractors
+    results = result_extractors
+
+    # TODO: support compressed output
+
+    if not re.match('<.+>$', run.samplename):
+        basedir = os.path.dirname(os.path.realpath(run.samplename))
+        stdout_bytes = lambda r: os.path.join(basedir, r.stdout)
+        stderr_bytes = lambda r: os.path.join(basedir, r.stderr)
+    else:
+        stdout_bytes = attrgetter('stdout')
+        stderr_bytes = attrgetter('stderr')
+
+    stdout_bytes = maybe_path_exists(
+        compose(os.path.getsize, stdout_bytes))
+    stderr_bytes = maybe_path_exists(
+        compose(os.path.getsize, stderr_bytes))
+
+    results += (
+        Selector('stdout_bytes', stdout_bytes),
+        Selector('stderr_bytes', stderr_bytes))
+
+    results = Collector(*results)
+    colls = [results]
+    if getattr(run, 'hasusage', 'false').lower() == 'true':
+        usage = Collector(*usage)
+        colls.append(usage)
+    else:
+        usage = None
+    nc = len(colls)
+    for i, record in enumerate(run):
+        colls[i % nc].add(record)
+    return results, usage
+
 class RunReport:
-
-    usage_extractors = (
-        Selector('cputime', lambda r: (r.utime - r.stime)),
-        Selector('maxrss'),
-        Selector('minflt'),
-        Selector('majflt'),
-        Selector('nswap'),
-        Selector('inblock'),
-        Selector('oublock'),
-        Selector('nvcsw'),
-        Selector('nivcsw'))
-
-    result_extractors = (
-        Selector('wallclock', lambda r: (r.end - r.start)),
-    ) + usage_extractors
-
-    results = None
-    usage = None
-
     def __init__(self, run):
         self.run = run
-
-        result_extractors = self.result_extractors
-
-        # TODO: support compressed output
-
-        if not re.match('<.+>$', self.run.samplename):
-            basedir = os.path.dirname(os.path.realpath(self.run.samplename))
-            stdout_bytes = lambda r: os.path.join(basedir, r.stdout)
-            stderr_bytes = lambda r: os.path.join(basedir, r.stderr)
-        else:
-            stdout_bytes = attrgetter('stdout')
-            stderr_bytes = attrgetter('stderr')
-
-        stdout_bytes = maybe_path_exists(
-            compose(os.path.getsize, stdout_bytes))
-        stderr_bytes = maybe_path_exists(
-            compose(os.path.getsize, stderr_bytes))
-
-        result_extractors += (
-            Selector('stdout_bytes', stdout_bytes),
-            Selector('stderr_bytes', stderr_bytes))
-
-        self.results = Collector(*result_extractors)
-        colls = [self.results,]
-        if getattr(self.run, 'hasusage', 'false').lower() == 'true':
-            self.usage = Collector(*self.usage_extractors)
-            colls.append(self.usage)
-        nc = len(colls)
-        for i, record in enumerate(self.run):
-            colls[i % nc].add(record)
+        self.results, self.usage = run_collections(run)
 
     def __str__(self):
         s = ''
