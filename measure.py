@@ -68,7 +68,7 @@ def scalar_op(op):
     scalarr.__name__ += '_' + op.__name__
     return scalarr
 
-class timeval(namedtuple('timeval', 's ms')):
+class timeval(namedtuple('timeval', 's us')):
     __add__ = componentwise_op(add)
     __radd__ = componentwise_rop(add)
     __sub__ = componentwise_op(sub)
@@ -82,15 +82,15 @@ class timeval(namedtuple('timeval', 's ms')):
         return timeval(*(round(i, prec) for i in self))
 
     def asint(self):
-        return self.s * 10**6 + self.ms
+        return self.s * 10**6 + self.us
 
     def asfloat(self):
-        return self.s + self.ms / 10**6
+        return self.s + self.us / 10**6
 
     def __str__(self):
-        return '%ds,%dms' % self
+        return '%ds,%dus' % self
 
-    re = re.compile(r'(\d+)s,(\d+)ms')
+    re = re.compile(r'(\d+)s,(\d+)us')
 
     @classmethod
     def match(cls, value):

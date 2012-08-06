@@ -42,10 +42,10 @@ void print_result(struct program_result *res) {
 
     struct rusage *r = &res->rusage;
 
-    printf("%us,%ums", r->ru_utime.tv_sec, r->ru_utime.tv_usec);
+    printf("%us,%uus", r->ru_utime.tv_sec, r->ru_utime.tv_usec);
     putchar(' ');
 
-    printf("%us,%ums", r->ru_stime.tv_sec, r->ru_stime.tv_usec);
+    printf("%us,%uus", r->ru_stime.tv_sec, r->ru_stime.tv_usec);
     putchar(' ');
 
     printf("%u %u %u %u %u %u %u %u %u %u %u %u %u %u",
