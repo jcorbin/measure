@@ -112,20 +112,6 @@ def run_collections(run):
         colls[i % nc].add(record)
     return results, usage
 
-def result_rows(runs):
-    fields = None
-    for i, run in enumerate(runs):
-        results, usage = run_collections(run)
-        if usage is not None:
-            raise NotImplementedError('no support for usage in result_rows')
-        runfields, stats = zip(*collection_stats(results))
-        if i == 0:
-            fields = runfields
-            yield ('samplename',) + fields
-        else:
-            assert runfields == fields
-        yield (run.samplename,) + stats
-
 import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument('--table', '-t', action='store_true',
@@ -138,8 +124,18 @@ args = parser.parse_args()
 runs = map(named_records.read, args.files)
 
 if args.table:
-    for row in result_rows(runs):
-        print(*row)
+    fields = None
+    for i, run in enumerate(runs):
+        results, usage = run_collections(run)
+        if usage is not None:
+            raise NotImplementedError('no support for usage in result_rows')
+        runfields, stats = zip(*collection_stats(results))
+        if i == 0:
+            fields = runfields
+            print('samplename', *fields)
+        else:
+            assert runfields == fields
+        print(run.samplename, *stats)
 
 else:
     for i, run in enumerate(runs):
