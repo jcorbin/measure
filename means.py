@@ -127,7 +127,8 @@ class RunReport:
 
 args = sys.argv[1:]
 fs = map(open, args) if args else (sys.stdin,)
-for i, f in enumerate(fs):
+runs = map(named_records.read, fs)
+for i, run in enumerate(runs):
     if i > 0:
         print()
-    print(RunReport(named_records.read(f)))
+    print(RunReport(run))
