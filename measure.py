@@ -18,7 +18,8 @@
 import collections
 import re
 from collections import namedtuple
-from operator import add, sub, mul, floordiv, truediv, attrgetter, itemgetter
+from math import modf
+from operator import attrgetter, itemgetter
 
 __all__ = ('named_records', 'Selector', 'Collector')
 
@@ -37,30 +38,6 @@ class RecordMetaClass(type):
 
 from numbers import Number
 
-def componentwise_op(op):
-    def componentwise(a, b):
-        cls = a.__class__
-        if not isinstance(b, cls):
-            if isinstance(b, Number):
-                return cls(*(op(ai, b) for ai in a))
-            else:
-                return NotImplemented
-        return cls(*map(op, a, b))
-    componentwise.__name__ += '_' + op.__name__
-    return componentwise
-
-def componentwise_rop(op):
-    def componentwise(a, b):
-        cls = a.__class__
-        if not isinstance(b, cls):
-            if isinstance(b, Number):
-                return cls(*(op(b, ai) for ai in a))
-            else:
-                return NotImplemented
-        return cls(*map(op, b, a))
-    componentwise.__name__ += '_' + op.__name__
-    return componentwise
-
 def scalar_op(op):
     def scalarr(x, s):
         cls = x.__class__
@@ -69,14 +46,77 @@ def scalar_op(op):
     return scalarr
 
 class timeval(namedtuple('timeval', 's us')):
-    __add__ = componentwise_op(add)
-    __radd__ = componentwise_rop(add)
-    __sub__ = componentwise_op(sub)
-    __rsub__ = componentwise_op(sub)
-    __mul__ = scalar_op(mul)
-    __pow__ = scalar_op(pow)
-    __truediv__ = scalar_op(truediv)
-    __floordiv__ = scalar_op(floordiv)
+    def __add__(a, b):
+        if isinstance(b, Number):
+            s, us = a.s + b, a.us + b
+        elif isinstance(b, timeval):
+            s, us = a.s + b.s, a.us + b.us
+        else:
+            return NotImplemented
+        while us > 10**6:
+            s, us = s + 1, us - 10**6
+        return timeval(s, us)
+
+    __radd__ = __add__
+
+    def __sub__(a, b):
+        if isinstance(b, Number):
+            s, us = a.s - b, a.us - b
+        elif isinstance(b, timeval):
+            s, us = a.s - b.s, a.us - b.us
+        else:
+            return NotImplemented
+        while us < 0:
+            s, us = s - 1, us + 10**6
+        return timeval(s, us)
+
+    def __rsub__(b, a):
+        if isinstance(a, Number):
+            s, us = a - b.s, a - b.us
+        elif isinstance(b, timeval):
+            s, us = a.s - b.s, a.us - b.us
+        else:
+            return NotImplemented
+        while us < 0:
+            s, us = s - 1, us + 10**6
+        return timeval(s, us)
+
+    def __mul__(a, b):
+        if isinstance(b, Number):
+            s, us = a.s * b, a.us * b
+        else:
+            return NotImplemented
+        if us > 10**6:
+            q, r = divmod(us, 10**6)
+            s, us = s + q, r
+        return timeval(s, us)
+
+    __rmul__ = __mul__
+
+    def __truediv__(a, b):
+        if isinstance(b, Number):
+            s, us = a.s / b, int(round(a.us / b))
+        else:
+            return NotImplemented
+        f, i = modf(s)
+        s = int(i)
+        us += int(round(10**6 * f))
+        if us > 10**6:
+            q, r = divmod(us, 10**6)
+            s, us = s + q, r
+        return timeval(s, us)
+
+    __floordiv__ = __truediv__
+
+    def __pow__(a, b):
+        if isinstance(b, Number):
+            s, us = a.s ** b, a.us ** b
+        else:
+            return NotImplemented
+        if us > 10**6:
+            q, r = divmod(us, 10**6)
+            s, us = s + q, r
+        return timeval(s, us)
 
     def __round__(self, prec):
         return timeval(
@@ -101,14 +141,77 @@ class timeval(namedtuple('timeval', 's us')):
             return cls(*(map(int, m.groups())))
 
 class timespec(namedtuple('timespec', 's ns')):
-    __add__ = componentwise_op(add)
-    __radd__ = componentwise_rop(add)
-    __sub__ = componentwise_op(sub)
-    __rsub__ = componentwise_op(sub)
-    __mul__ = scalar_op(mul)
-    __pow__ = scalar_op(pow)
-    __truediv__ = scalar_op(truediv)
-    __floordiv__ = scalar_op(floordiv)
+    def __add__(a, b):
+        if isinstance(b, Number):
+            s, ns = a.s + b, a.ns + b
+        elif isinstance(b, timespec):
+            s, ns = a.s + b.s, a.ns + b.ns
+        else:
+            return NotImplemented
+        while ns > 10**9:
+            s, ns = s + 1, ns - 10**9
+        return timespec(s, ns)
+
+    __radd__ = __add__
+
+    def __sub__(a, b):
+        if isinstance(b, Number):
+            s, ns = a.s - b, a.ns - b
+        elif isinstance(b, timespec):
+            s, ns = a.s - b.s, a.ns - b.ns
+        else:
+            return NotImplemented
+        while ns < 0:
+            s, ns = s - 1, ns + 10**9
+        return timespec(s, ns)
+
+    def __rsub__(b, a):
+        if isinstance(a, Number):
+            s, ns = a - b.s, a - b.ns
+        elif isinstance(b, timespec):
+            s, ns = a.s - b.s, a.ns - b.ns
+        else:
+            return NotImplemented
+        while ns < 0:
+            s, ns = s - 1, ns + 10**9
+        return timespec(s, ns)
+
+    def __mul__(a, b):
+        if isinstance(b, Number):
+            s, ns = a.s * b, a.ns * b
+        else:
+            return NotImplemented
+        if ns > 10**9:
+            q, r = divmod(ns, 10**9)
+            s, ns = s + q, r
+        return timespec(s, ns)
+
+    __rmul__ = __mul__
+
+    def __truediv__(a, b):
+        if isinstance(b, Number):
+            s, ns = a.s / b, int(round(a.ns / b))
+        else:
+            return NotImplemented
+        f, i = modf(s)
+        s = int(i)
+        ns += int(round(10**9 * f))
+        if ns > 10**9:
+            q, r = divmod(ns, 10**9)
+            s, ns = s + q, r
+        return timespec(s, ns)
+
+    __floordiv__ = __truediv__
+
+    def __pow__(a, b):
+        if isinstance(b, Number):
+            s, ns = a.s ** b, a.ns ** b
+        else:
+            return NotImplemented
+        if ns > 10**9:
+            q, r = divmod(ns, 10**9)
+            s, ns = s + q, r
+        return timespec(s, ns)
 
     def __round__(self, prec):
         return timespec(
