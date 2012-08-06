@@ -26,23 +26,23 @@ from measure import *
 
 # dirt-simple means computing script, doesn't know nuthin' 'bout confidence or credibility ;-)
 
+def collection_stats(collection):
+    yield 'Sample size', len(collection[0])
+    for field, sample in zip(collection.fields, collection):
+        sample = [x for x in sample if x is not None]
+        if sample:
+            mean = round(sum(sample) / len(sample), 2)
+        else:
+            mean = None
+        yield field, mean
+
 class Report:
     def __init__(self, collection):
         self.collection = collection
 
-    def fields(self):
-        yield 'Sample size', len(self.collection[0])
-        for field, sample in zip(self.collection.fields, self.collection):
-            sample = [x for x in sample if x is not None]
-            if sample:
-                mean = round(sum(sample) / len(sample), 2)
-            else:
-                mean = None
-            yield field, mean
-
     def __str__(self):
         s = ''
-        fields = list(self.fields())
+        fields = list(collection_stats(self.collection))
         maxlen = max(len(label) for label, _ in fields)
         maxlen += 2
         for field, mean in fields:
