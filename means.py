@@ -18,6 +18,7 @@
 
 import errno
 from functools import wraps
+from math import modf
 import os
 import re
 import sys
@@ -32,6 +33,10 @@ def collection_stats(collection):
         sample = [x for x in sample if x is not None]
         if sample:
             mean = round(sum(sample) / len(sample), 2)
+            if isinstance(mean, float):
+                f, i = modf(mean)
+                if f == 0:
+                    mean = int(i)
         else:
             mean = None
         yield field, mean
