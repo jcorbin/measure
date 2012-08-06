@@ -27,7 +27,7 @@ from measure import *
 # dirt-simple means computing script, doesn't know nuthin' 'bout confidence or credibility ;-)
 
 def collection_stats(collection):
-    yield 'Sample size', len(collection[0])
+    yield 'samples', len(collection[0])
     for field, sample in zip(collection.fields, collection):
         sample = [x for x in sample if x is not None]
         if sample:
