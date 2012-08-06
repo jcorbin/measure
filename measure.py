@@ -21,7 +21,7 @@ from collections import namedtuple
 from math import modf
 from operator import attrgetter, itemgetter
 
-__all__ = ('named_records', 'Selector', 'Collector')
+__all__ = ('Run', 'Selector', 'Collector')
 
 # TODO: docstrings? comments? examples?
 
@@ -283,43 +283,11 @@ def create_record_class(fields):
     return NamedRecord
 
 class named_records(object):
-    @classmethod
-    def read(cls, lines):
-        runinfo = {
-            'samplename': lines.name
-        }
-        for line in lines:
-            if '=' not in line: break
-            line = line.rstrip('\r\n')
-            key, val = line.split('=', 1)
-            armatch = re.match(r'(\w+)\[(\d+)\]$', key)
-            if armatch:
-                key, i = armatch.groups()
-                i = int(i)
-                ar = runinfo.setdefault(key, [])
-                while len(ar) < i+1:
-                    ar.append(None)
-                ar[i] = val
-            else:
-                runinfo[key] = val
-
-        self = cls(lines, initial_line=line)
-        self.runinfo = runinfo
-        return self
-
     def __init__(self, lines, initial_line=None):
         if initial_line is None:
             initial_line = next(lines)
         self.record_class = create_record_class(initial_line)
         self.lines = lines
-
-    def __getattr__(self, name):
-        try:
-            return self.runinfo[name]
-        except KeyError:
-            pass
-        raise AttributeError('no %s in %s' % (
-            name, self.__class__.__name__))
 
     @property
     def fields(self):
@@ -330,6 +298,34 @@ class named_records(object):
 
     def __next__(self):
         return self.record_class(next(self.lines))
+
+class Run(named_records):
+    def __init__(self, lines):
+        self.runinfo = {}
+        self.runinfo['samplename'] = lines.name
+        for line in lines:
+            if '=' not in line: break
+            line = line.rstrip('\r\n')
+            key, val = line.split('=', 1)
+            armatch = re.match(r'(\w+)\[(\d+)\]$', key)
+            if armatch:
+                key, i = armatch.groups()
+                i = int(i)
+                ar = self.runinfo.setdefault(key, [])
+                while len(ar) < i+1:
+                    ar.append(None)
+                ar[i] = val
+            else:
+                self.runinfo[key] = val
+        super(Run, self).__init__(lines, initial_line=line)
+
+    def __getattr__(self, name):
+        try:
+            return self.runinfo[name]
+        except KeyError:
+            pass
+        raise AttributeError('no %s in %s' % (
+            name, self.__class__.__name__))
 
 class Selector(object):
     def __init__(self, name, f=None):
@@ -368,6 +364,6 @@ class Collector(tuple):
 if __name__ == '__main__':
     from pprint import pprint
     import sys
-    records = named_records.read(sys.stdin)
+    records = Run(sys.stdin)
     pprint(records.runinfo)
     pprint(list(records))

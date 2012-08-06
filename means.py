@@ -104,7 +104,7 @@ parser.add_argument('files', metavar='FILE',
     help='Sample files to read, use STDIN if none given')
 args = parser.parse_args()
 
-runs = map(named_records.read, args.files)
+runs = map(Run, args.files)
 
 if args.table:
     fields = None
