@@ -124,8 +124,24 @@ class RunReport:
         s += '== Results\n%s' % collection_report(self.results)
         return s
 
+def result_rows(runs):
+    fields = None
+    for i, run in enumerate(runs):
+        results, usage = run_collections(run)
+        if usage is not None:
+            raise NotImplementedError('no support for usage in result_rows')
+        runfields, stats = zip(*collection_stats(results))
+        if i == 0:
+            fields = runfields
+            yield ('samplename',) + fields
+        else:
+            assert runfields == fields
+        yield (run.samplename,) + stats
+
 import argparse
 parser = argparse.ArgumentParser()
+parser.add_argument('--table', '-t', action='store_true',
+    help='Output in space-delimited table format')
 parser.add_argument('files', metavar='FILE',
     type=argparse.FileType('r'), nargs='*',
     help='Sample files to read, use STDIN if none given')
@@ -133,7 +149,12 @@ args = parser.parse_args()
 
 runs = map(named_records.read, args.files)
 
-for i, run in enumerate(runs):
-    if i > 0:
-        print()
-    print(RunReport(run))
+if args.table:
+    for row in result_rows(runs):
+        print(*row)
+
+else:
+    for i, run in enumerate(runs):
+        if i > 0:
+            print()
+        print(RunReport(run))
