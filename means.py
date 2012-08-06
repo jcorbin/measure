@@ -35,14 +35,6 @@ def collection_stats(collection):
             mean = None
         yield field, mean
 
-def collection_report(collection):
-    fields = list(collection_stats(collection))
-    maxlen = max(len(label) for label, _ in fields)
-    maxlen += 2
-    return '\n'.join(
-        (field + ':').ljust(maxlen) + str(mean)
-        for field, mean in fields)
-
 import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument('--table', '-t', action='store_true',
@@ -69,4 +61,9 @@ else:
     for i, run in enumerate(runs):
         if i > 0:
             print()
-        print('== Results\n%s' % collection_report(run.results()))
+        collection = run.results()
+        print('== Results')
+        fields = list(collection_stats(collection))
+        maxlen = max(len(label) for label, _ in fields) + 2
+        for field, mean in fields:
+            print((field + ':').ljust(maxlen) + str(mean))
