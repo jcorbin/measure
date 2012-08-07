@@ -354,7 +354,7 @@ class Run(named_records):
 
         results = Collector(
             Selector('wallclock', lambda r: (r.end - r.start)),
-            Selector('cputime', lambda r: (r.utime - r.stime)),
+            Selector('cputime', lambda r: (r.utime + r.stime)),
             Selector('maxrss'),
             Selector('minflt'),
             Selector('majflt'),
