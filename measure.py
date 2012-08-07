@@ -283,17 +283,15 @@ class named_records(object):
         if initial_line is None:
             initial_line = next(lines)
         self.record_class = create_record_class(initial_line)
-        self.lines = lines
+        self.lines = list(lines)
 
     @property
     def fields(self):
         return self.record_class._fields
 
     def __iter__(self):
-        return self
-
-    def __next__(self):
-        return self.record_class(next(self.lines))
+        for line in self.lines:
+            yield self.record_class(line)
 
 def maybe_path_exists(f):
     @wraps(f)
